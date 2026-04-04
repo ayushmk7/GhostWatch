@@ -1,4 +1,5 @@
-with entry {
-    print("Hello");
-}
+import from frontend { }
 
+with entry {
+    pass;
+}
