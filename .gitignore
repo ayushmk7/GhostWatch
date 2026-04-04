@@ -1,0 +1,17 @@
+# Local virtual environment
+myenv/
+
+# Python cache/artifacts
+__pycache__/
+*.py[cod]
+
+# Jac generated runtime/cache data
+.jac/
+**/.jac/
+*.jir
+
+# Local database files
+*.db
+
+# OS/editor noise
+.DS_Store
