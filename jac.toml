@@ -1,0 +1,21 @@
+[project]
+name = "ghostwatch"
+version = "1.0.0"
+entry = "main.jac"
+
+[dependencies]
+PyGithub = "^2.0.0"
+requests = "^2.31.0"
+
+[dependencies.npm]
+react = "^18.0.0"
+"@xyflow/react" = "^12.0.0"
+
+[plugins.byllm.model]
+default_model = "claude-sonnet-4-20250514"
+
+[plugins.client]
+port = 3000
+
+[serve]
+port = 8000
