@@ -1,14 +1,14 @@
-# Sentree — Technical PRD
+# GhostWatch — Technical PRD
 **Version 1.0 | JacHacks 2026**
 
 ---
 
 ## Architecture Overview
 
-Sentree is a single Jac application — one `.jac` file serving backend logic, frontend visualization, and AI agent orchestration. Jac's codespace system (`sv` for server, `cl` for client) eliminates the need for a separate frontend project. All Python libraries (PyGithub, discord.py, e2b, backboard) are imported directly into Jac using its native Python interop.
+GhostWatch is a single Jac application — one `.jac` file serving backend logic, frontend visualization, and AI agent orchestration. Jac's codespace system (`sv` for server, `cl` for client) eliminates the need for a separate frontend project. All Python libraries (PyGithub, discord.py, e2b, backboard) are imported directly into Jac using its native Python interop.
 
 ```
-sentree/
+ghostwatch/
 ├── main.jac              # Entry point — jac start main.jac
 ├── jac.toml              # Project config, dependencies, model config
 ├── .env                  # GITHUB_TOKEN, ANTHROPIC_API_KEY, 
@@ -694,9 +694,9 @@ glob backboard_client: BackboardClient = BackboardClient(
     api_key=env.BACKBOARD_API_KEY
 );
 
-glob security_assistant_id: str = "sentree-security-jaseci-labs-jaseci";
-glob compat_assistant_id: str = "sentree-compat-jaseci-labs-jaseci";
-glob blast_assistant_id: str = "sentree-blast-jaseci-labs-jaseci";
+glob security_assistant_id: str = "ghostwatch-security-jaseci-labs-jaseci";
+glob compat_assistant_id: str = "ghostwatch-compat-jaseci-labs-jaseci";
+glob blast_assistant_id: str = "ghostwatch-blast-jaseci-labs-jaseci";
 
 can get_security_memory(context: str) -> str {
     return backboard_client.query(
@@ -773,7 +773,7 @@ can build_verdict_embed(verdict: VerdictObject) -> Embed by llm();
 
 ```toml
 [project]
-name = "sentree"
+name = "ghostwatch"
 version = "1.0.0"
 entry = "main.jac"
 

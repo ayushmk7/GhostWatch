@@ -1,11 +1,11 @@
-# Sentree — Backend PRD
+# GhostWatch — Backend PRD
 **Version 1.0 | JacHacks 2026**
 
 ---
 
 ## Backend Philosophy
 
-Sentree has no traditional backend. There is no REST API layer, no separate database service, no microservices to orchestrate, and no infrastructure to manage. The entire backend is a running Jac graph with walkers as the compute layer. `jac start main.jac` is the backend. Persistence is automatic via Jac's root node. Scaling is `jac start main.jac --scale`.
+GhostWatch has no traditional backend. There is no REST API layer, no separate database service, no microservices to orchestrate, and no infrastructure to manage. The entire backend is a running Jac graph with walkers as the compute layer. `jac start main.jac` is the backend. Persistence is automatic via Jac's root node. Scaling is `jac start main.jac --scale`.
 
 Every function that touches AI is a `by llm()` call. Every function that traverses data is a walker. Every piece of data that needs to survive across invocations is a node or edge connected to root.
 
@@ -39,7 +39,7 @@ No MongoDB schema to define. No ORM to configure. The graph is the database.
 
 ## Walker Endpoint Mapping
 
-When `jac start main.jac` runs, every walker marked `def:pub` becomes an HTTP endpoint automatically. Sentree exposes the following:
+When `jac start main.jac` runs, every walker marked `def:pub` becomes an HTTP endpoint automatically. GhostWatch exposes the following:
 
 ```
 POST /walker/trigger-pr-analysis
@@ -78,7 +78,7 @@ All endpoints are auto-documented at `/docs` by `jac start`.
 
 ## GitHub Webhook Handler
 
-Sentree listens for two GitHub webhook events. The webhook receiver is a Jac walker exposed as a public endpoint:
+GhostWatch listens for two GitHub webhook events. The webhook receiver is a Jac walker exposed as a public endpoint:
 
 ```jac
 walker GitHubWebhookWalker {
@@ -154,7 +154,7 @@ with entry {
     @bot.event
     async def on_ready() {
         await bot.tree.sync();
-        print(f"Sentree online as {bot.user}");
+        print(f"GhostWatch online as {bot.user}");
     }
     
     bot.run(env.DISCORD_TOKEN);
@@ -224,7 +224,7 @@ glob bb: BackboardClient = BackboardClient(api_key=env.BACKBOARD_API_KEY);
 # Called at the start of each SecurityAuditorWalker invocation
 can load_security_memory(repo: str, file_path: str) -> str {
     thread = bb.get_or_create_thread(
-        assistant_id=f"sentree-security-{repo.replace('/', '-')}",
+        assistant_id=f"ghostwatch-security-{repo.replace('/', '-')}",
         thread_id=f"security-{file_path.replace('/', '-')}"
     );
     return bb.recall(
@@ -241,7 +241,7 @@ can store_walker_finding(
     finding: dict
 ) -> None {
     bb.store(
-        assistant_id=f"sentree-{walker_type}-{repo.replace('/', '-')}",
+        assistant_id=f"ghostwatch-{walker_type}-{repo.replace('/', '-')}",
         content=f"PR: {pr_url} | {finding}"
     );
 }

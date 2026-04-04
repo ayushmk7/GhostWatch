@@ -1,13 +1,13 @@
-# Sentree — Product Requirements Document
+# GhostWatch — Product Requirements Document
 **Version 1.0 | JacHacks 2026**
 
 ---
 
 ## Overview
 
-Sentree is an autonomous multi-agent code guardian built natively in the Jac programming language, protecting the Jac open source repository in real time. It combines two distinct systems: a static multi-walker PR analyzer that reviews pull requests before they merge, and Ghostwatch, a fully autonomous out-of-loop dependency security pipeline that fires on any push and requires zero human intervention until a fix PR is ready to approve.
+GhostWatch is an autonomous multi-agent code guardian built natively in the Jac programming language, protecting the Jac open source repository in real time. It combines two distinct systems: a static multi-walker PR analyzer that reviews pull requests before they merge, and Ghostwatch, a fully autonomous out-of-loop dependency security pipeline that fires on any push and requires zero human intervention until a fix PR is ready to approve.
 
-Sentree is built in Jac, protecting Jac, using Jac's own graph model of itself. The codebase is the graph. The agents are walkers. The language defends itself.
+GhostWatch is built in Jac, protecting Jac, using Jac's own graph model of itself. The codebase is the graph. The agents are walkers. The language defends itself.
 
 ---
 
@@ -19,7 +19,7 @@ Open source repositories face two distinct threats that existing tools fail to a
 
 **Threat 2 — Supply chain attacks bypassing CI/CD.** The Axios attack on March 31, 2026 demonstrated that sophisticated attackers use compromised maintainer credentials to publish directly to npm, bypassing GitHub Actions entirely. No PR is ever opened. Static code review never fires. The malicious dependency runs its postinstall hook automatically on every developer machine and CI pipeline that installs the package.
 
-Sentree addresses both threats with architecturally distinct systems operating at the right layer.
+GhostWatch addresses both threats with architecturally distinct systems operating at the right layer.
 
 ---
 
@@ -31,7 +31,7 @@ Sentree addresses both threats with architecturally distinct systems operating a
 
 ---
 
-## System 1: Sentree Static Analyzer
+## System 1: GhostWatch Static Analyzer
 
 ### What it does
 A Discord slash command triggers a multi-walker analysis pipeline against any open PR on the Jac repository. Three specialist walkers traverse a live Jac graph of the codebase in parallel, each analyzing the change from a different angle, and post a structured verdict card to the Jac Discord server within seconds.
@@ -39,7 +39,7 @@ A Discord slash command triggers a multi-walker analysis pipeline against any op
 ### User flow
 1. PR opens on `jaseci-labs/jaseci`
 2. Maintainer or contributor types `/trigger PR_URL` in Jac Discord
-3. Sentree builds the affected subgraph from the PR diff
+3. GhostWatch builds the affected subgraph from the PR diff
 4. Three walkers traverse the subgraph concurrently
 5. A structured Discord verdict card appears with risk score, per-walker findings, and action buttons
 6. Maintainer clicks Approve — inline GitHub review comments are posted to the PR
@@ -48,7 +48,7 @@ A Discord slash command triggers a multi-walker analysis pipeline against any op
 ### Features
 
 **Repo → Jac Graph Parser**
-The entire Jac repository is modeled as a persistent Jac graph. Files are nodes. Import relationships and dependency edges connect them. The graph persists across sessions via Jac's root node — no separate database required. When a PR arrives, Sentree already has the full codebase topology loaded and only processes the affected subgraph.
+The entire Jac repository is modeled as a persistent Jac graph. Files are nodes. Import relationships and dependency edges connect them. The graph persists across sessions via Jac's root node — no separate database required. When a PR arrives, GhostWatch already has the full codebase topology loaded and only processes the affected subgraph.
 
 **Security Auditor Walker**
 Traverses the affected subgraph looking for dangerous patterns: credential exposure, unsafe operations, injection vectors, changes to security-critical paths. Uses `by llm()` with full file context injected via `incl_info(here)`. Leaves typed findings as edge annotations on the graph.
@@ -109,7 +109,7 @@ Opens a GitHub PR against the offending commit without any human involvement. Th
 Pings `@repo-owner` and `@committer` in the Jac Discord server immediately with a summary of the evidence and a direct link to the fix PR. If no merge action is taken within two hours, re-pings with escalation. Respects role-based auth — only designated maintainer roles receive security escalations.
 
 **Role-Based Auth**
-Admins can approve PR reviews, trigger analysis, and receive security escalations. Contributors can trigger analysis and receive gap analysis suggestions. Guests can view the live graph visualization only. Discord server roles map to Sentree permission levels.
+Admins can approve PR reviews, trigger analysis, and receive security escalations. Contributors can trigger analysis and receive gap analysis suggestions. Guests can view the live graph visualization only. Discord server roles map to GhostWatch permission levels.
 
 ---
 
