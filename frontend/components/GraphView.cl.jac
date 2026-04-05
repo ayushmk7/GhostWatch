@@ -46,11 +46,11 @@ def:pub GraphView(
 
     total: Any = len(nodes_data);
     PI2: Any = 6.28318530718;
-    cx_r: int = 500;
-    cy_r: int = 500;
-    # Multi-ring layout — ring r holds 6*r nodes; radii spaced 200px apart
+    cx_r: int = 380;
+    cy_r: int = 260;
+    # Keep the constellation compact enough that fitView does not zoom it into dust.
     ring_caps: list = [1, 6, 12, 18, 24, 30, 36, 42];
-    ring_radii: list = [0, 200, 380, 560, 740, 920, 1100, 1280];
+    ring_radii: list = [0, 86, 150, 214, 278, 342, 406, 470];
     ring_start: list = [0, 1, 7, 19, 37, 61, 91, 127];
 
     # Build ReactFlow node objects
@@ -99,7 +99,8 @@ def:pub GraphView(
         }
 
         node_path: Any = n["path"];
-        label: Any = node_path.split("/")[-1]; # jac:ignore[E1032]
+        path_parts: Any = node_path.split("/"); # jac:ignore[E1032]
+        label: Any = path_parts[len(path_parts) - 1] if len(path_parts) > 0 else node_path;
 
         # Multi-ring layout: find which ring this node belongs to
         ring: int = 0;
@@ -181,6 +182,7 @@ def:pub GraphView(
                 nodes={xf_nodes}
                 edges={xf_edges}
                 fitView={True}
+                fitViewOptions={{"padding": 0.12, "minZoom": 0.38, "maxZoom": 1.2}}
                 nodesDraggable={False}
                 nodesConnectable={False}
                 elementsSelectable={False}

@@ -20,7 +20,7 @@ impl OrchestratorWalker.orchestrate with Root entry {
     start_node = self._get_subgraph_root();
     if not start_node {
         report {
-            "error": "No graph built. Call POST /walker/rebuild-graph first.",
+            "error": "No graph built. Call POST /walker/GraphBuilderWalker first.",
             "status": "failed"
         };
         return;

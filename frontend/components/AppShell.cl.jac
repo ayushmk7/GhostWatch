@@ -9,14 +9,8 @@ cl import from .AttentionItem { AttentionItem }
 cl import from .GraphView { GraphView }
 cl import from ..mock_data {
     SIDEBAR_ITEMS,
-    SUMMARY_CARDS,
     INCIDENTS,
-    WALKER_STATUS,
-    ATTENTION_ITEMS,
     CONTRIBUTOR_SIDEBAR_ITEMS,
-    CONTRIBUTOR_SUMMARY_CARDS,
-    CONTRIBUTOR_WALKER_STATUS,
-    CONTRIBUTOR_ATTENTION_ITEMS,
     CONTRIBUTOR_GITHUB_ISSUES,
     CONTRIBUTOR_AI_ISSUES,
     CONTRIBUTOR_DOCS_ROWS,
@@ -43,6 +37,59 @@ def parse_repo_slug(raw: str) -> str {
     return t if t else "unknown/repo";
 }
 
+def parse_pr_ref(raw: str) -> str {
+    t = str(raw or "").strip();
+    if not t {
+        return "—";
+    }
+    parts = t.rstrip("/").split("/");
+    if len(parts) == 0 {
+        return t;
+    }
+    return "#" + str(parts[len(parts) - 1]);
+}
+
+def path_key(raw: str) -> str {
+    t = str(raw or "").strip().lower();
+    if not t {
+        return "";
+    }
+    parts = t.split("/");
+    name = parts[len(parts) - 1] if len(parts) > 0 else t;
+    name = name.replace(".jac", "");
+    name = name.replace(".py", "");
+    name = name.replace(".tsx", "");
+    name = name.replace(".ts", "");
+    name = name.replace(".jsx", "");
+    name = name.replace(".js", "");
+    name = name.replace(".md", "");
+    return name;
+}
+
+def contains_text(haystack: str, needle: str) -> bool {
+    h = str(haystack or "");
+    n = str(needle or "");
+    if not n {
+        return False;
+    }
+    return h.find(n) >= 0;
+}
+
+def looks_like_doc(raw: str) -> bool {
+    t = str(raw or "").strip().lower();
+    if not t {
+        return False;
+    }
+    return t.endswith(".md") or contains_text(t, "/docs/") or t.startswith("docs/");
+}
+
+def str_or(val: Any, fallback: str) -> str {
+    if not val {
+        return fallback;
+    }
+    return str(val);
+}
+
 def safeLen(val: Any) -> int {
     if not val { return 0; }
     if not Array.isArray(val) { return 0; } # jac:ignore[E1032]
@@ -65,45 +112,66 @@ def:pub AppShell(mode: str) -> JsxElement {
                 "/walker/GraphStateProxy",
                 {"method": "POST", "headers": {"Content-Type": "application/json"}, "body": "{}"}
             );
+            if not res.ok { # jac:ignore[E1032]
+                graphState = None; # jac:ignore[E1001]
+                graphFetchError = "graph proxy returned " + str(res.status); # jac:ignore[E1001,E1032]
+                return;
+            }
             data: Any = await res.json(); # jac:ignore[E1032]
             reports: Any = (data["data"] or {})["reports"] or []; # jac:ignore[E1001]
             if len(reports) > 0 { # jac:ignore[E1053]
                 graphState = reports[0]; # jac:ignore[E1001]
+                if reports[0]["demo_repo_slug"] {
+                    repoDisplay = str(reports[0]["demo_repo_slug"]); # jac:ignore[E1001]
+                }
                 graphFetchError = ""; # jac:ignore[E1001]
             } else {
+                graphState = None; # jac:ignore[E1001]
                 graphFetchError = "proxy returned 0 reports"; # jac:ignore[E1001]
             }
         } except Exception as e { # jac:ignore[W2052]
+            graphState = None; # jac:ignore[E1001]
             graphFetchError = str(e); # jac:ignore[E1001]
         }
     }
 
     async def runAnalysis() -> None {
-        analysisLoading = True;
-        analysisResult = None;
-        animatingPath = [];
+        analysisLoading = True; # jac:ignore[E1001]
+        analysisResult = None; # jac:ignore[E1001]
+        animatingPath = []; # jac:ignore[E1001]
 
-        body_str: Any = JSON.stringify({"pr_url": DEMO_PR_URL}); # jac:ignore[E1032]
-        res: Any = await doFetch(
-            "/walker/OrchestratorProxy",
-            {
-                "method": "POST",
-                "headers": {"Content-Type": "application/json"},
-                "body": body_str
+        try {
+            body_str: Any = JSON.stringify({"pr_url": DEMO_PR_URL}); # jac:ignore[E1032]
+            res: Any = await doFetch(
+                "/walker/OrchestratorProxy",
+                {
+                    "method": "POST",
+                    "headers": {"Content-Type": "application/json"},
+                    "body": body_str
+                }
+            );
+            if not res.ok { # jac:ignore[E1032]
+                graphFetchError = "analysis proxy returned " + str(res.status); # jac:ignore[E1001,E1032]
+                return;
             }
-        );
-        data: Any = await res.json(); # jac:ignore[E1032]
-        reports: Any = (data["data"] or {})["reports"] or []; # jac:ignore[E1001]
+            data: Any = await res.json(); # jac:ignore[E1032]
+            reports: Any = (data["data"] or {})["reports"] or []; # jac:ignore[E1001]
 
-        if len(reports) > 0 { # jac:ignore[E1053]
-            result: Any = reports[0]; # jac:ignore[E1001]
-            analysisResult = result; # jac:ignore[E1001]
-            paths: Any = result["traversal_paths"] or {}; # jac:ignore[E1001]
-            blast_path: Any = paths["blast_radius"] or []; # jac:ignore[E1001]
-            animatingPath = blast_path; # jac:ignore[E1001]
+            if len(reports) > 0 { # jac:ignore[E1053]
+                result: Any = reports[0]; # jac:ignore[E1001]
+                analysisResult = result; # jac:ignore[E1001]
+                paths: Any = result["traversal_paths"] or {}; # jac:ignore[E1001]
+                blast_path: Any = paths["blast_radius"] or []; # jac:ignore[E1001]
+                animatingPath = blast_path; # jac:ignore[E1001]
+                graphFetchError = ""; # jac:ignore[E1001]
+            } else {
+                graphFetchError = "analysis proxy returned 0 reports"; # jac:ignore[E1001]
+            }
+        } except Exception as e { # jac:ignore[W2052]
+            graphFetchError = str(e); # jac:ignore[E1001]
+        } finally {
+            analysisLoading = False; # jac:ignore[E1001]
         }
-
-        analysisLoading = False;
         await fetchGraphState();
     }
 
@@ -117,6 +185,101 @@ def:pub AppShell(mode: str) -> JsxElement {
     high_risk_count: int = len([n for n in live_nodes if int(n["risk_score"] or 0) >= 14]);
     has_graph_live: bool = graphState["has_graph"] if graphState else False;
     latest_pr_live: dict | None = graphState["latest_analysis"] if graphState else None;
+    latest_gap_live: dict | None = graphState["latest_gap_analysis"] if graphState else None;
+    latest_incident_live: dict | None = graphState["latest_incident"] if graphState else None;
+    github_issues_live: list = graphState["github_issues"] if graphState else [];
+    issue_digest_live: dict | None = graphState["issue_digest"] if graphState else None;
+    issues_error_live: str = str_or(graphState["issues_error"], "") if graphState else "";
+    digest_error_live: str = str_or(graphState["digest_error"], "") if graphState else "";
+    gap_suggestions_live: list = latest_gap_live["suggestions"] if latest_gap_live else [];
+    digest_recommended_live: list = issue_digest_live["recommended"] if issue_digest_live and issue_digest_live["recommended"] else [];
+    digest_summary_live: str = str_or(issue_digest_live["summary"], "") if issue_digest_live else "";
+    doc_files_live: list = [n for n in live_nodes if looks_like_doc(str_or(n["path"], ""))];
+    test_files_live: list = [n for n in live_nodes if n["is_test"]];
+    heuristic_doc_rows: list = [];
+    heuristic_test_rows: list = [];
+    for row in live_nodes {
+        path = str_or(row["path"], "");
+        if not path or row["is_test"] or looks_like_doc(path) {
+            continue;
+        }
+        key = path_key(path);
+        has_doc_match = False;
+        for drow in doc_files_live {
+            if key and contains_text(str_or(drow["path"], "").lower(), key) {
+                has_doc_match = True;
+                break;
+            }
+        }
+        if not has_doc_match and len(heuristic_doc_rows) < 5 {
+            heuristic_doc_rows = heuristic_doc_rows + [
+                {
+                    "path": path,
+                    "status": "Docs review suggested",
+                    "note": "No matching docs file detected in the current graph snapshot"
+                }
+            ];
+        }
+        has_test_match = False;
+        for trow in test_files_live {
+            if key and contains_text(str_or(trow["path"], "").lower(), key) {
+                has_test_match = True;
+                break;
+            }
+        }
+        if (not has_test_match) and int(row["risk_score"] or 0) >= 10 and len(heuristic_test_rows) < 5 {
+            heuristic_test_rows = heuristic_test_rows + [
+                {
+                    "suite": path,
+                    "status": "Missing tests",
+                    "note": "Risk score " + str(int(row["risk_score"] or 0)) + " without a matching test file"
+                }
+            ];
+        }
+    }
+    doc_gap_count: int = len([row for row in gap_suggestions_live if str(row["suggestion_type"] or "") == "missing_docs"]);
+    test_gap_count: int = len([
+        row
+        for row in gap_suggestions_live
+        if str(row["suggestion_type"] or "") in ["missing_tests", "incomplete_feature"]
+    ]);
+    if doc_gap_count == 0 {
+        doc_gap_count = len(heuristic_doc_rows);
+    }
+    if test_gap_count == 0 {
+        test_gap_count = len(heuristic_test_rows);
+    }
+
+    contributor_summary_cards: list = [
+        {
+            "label": "Open issues",
+            "value": str(safeLen(github_issues_live)) if safeLen(github_issues_live) > 0 else "—",
+            "delta": "repo backlog",
+            "tone": "frost",
+            "spark": "6,32 42,22 80,18 122,24 160,12 198,16 236,14 274,10"
+        },
+        {
+            "label": "Suggested tasks",
+            "value": str(safeLen(gap_suggestions_live)) if safeLen(gap_suggestions_live) > 0 else "—",
+            "delta": "from gap analysis",
+            "tone": "cyan",
+            "spark": "6,30 42,28 80,20 122,26 160,16 198,14 236,12 274,11"
+        },
+        {
+            "label": "Docs gaps",
+            "value": str(doc_gap_count) if latest_gap_live else "—",
+            "delta": "current snapshot",
+            "tone": "aqua",
+            "spark": "6,26 42,22 80,24 122,18 160,20 198,11 236,14 274,9"
+        },
+        {
+            "label": "Tests gaps",
+            "value": str(test_gap_count) if latest_gap_live else "—",
+            "delta": "current snapshot",
+            "tone": "amber",
+            "spark": "6,34 42,24 80,22 122,18 160,20 198,13 236,10 274,12"
+        }
+    ];
 
     live_summary_cards: list = [
         {
@@ -152,7 +315,7 @@ def:pub AppShell(mode: str) -> JsxElement {
         }
     ];
 
-    summaryCards = CONTRIBUTOR_SUMMARY_CARDS if isContributor else live_summary_cards;
+    summaryCards = contributor_summary_cards if isContributor else live_summary_cards;
 
     walker_state_str: str = "Running" if analysisLoading else ("Active" if has_graph_live else "Idle");
     live_walker_status: list = [
@@ -160,9 +323,24 @@ def:pub AppShell(mode: str) -> JsxElement {
         {"name": "CompatibilityCheckerWalker", "state": walker_state_str},
         {"name": "BlastRadiusMapperWalker", "state": walker_state_str}
     ];
-    walkerItems = CONTRIBUTOR_WALKER_STATUS if isContributor else live_walker_status;
+    contributor_walker_status: list = [
+        {"name": "GraphStateWalker", "state": "Active" if graphState else "Idle"},
+        {"name": "GapAnalysisWalker", "state": "Ready" if latest_gap_live else "Waiting"},
+        {
+            "name": "IssueDigest",
+            "state": (
+                "Loaded"
+                    if digest_summary_live
+                    else "Needs token"
+                    if issues_error_live
+                    else "Error"
+                    if digest_error_live
+                    else "Pending"
+            )
+        }
+    ];
+    walkerItems = contributor_walker_status if isContributor else live_walker_status;
 
-    latest_incident_live: dict | None = graphState["latest_incident"] if graphState else None;
     live_attention_items: list = [
         {
             "title": "Files in graph",
@@ -177,7 +355,157 @@ def:pub AppShell(mode: str) -> JsxElement {
             "value": latest_incident_live["status"] if latest_incident_live else "None"
         }
     ];
-    attentionItems = CONTRIBUTOR_ATTENTION_ITEMS if isContributor else live_attention_items;
+    contributor_attention_items: list = [
+        {
+            "title": "Open issues",
+            "value": f"{safeLen(github_issues_live)} visible" if safeLen(github_issues_live) > 0 else "Unavailable"
+        },
+        {
+            "title": "Recommended picks",
+            "value": f"{safeLen(digest_recommended_live)} ranked" if safeLen(digest_recommended_live) > 0 else "Waiting"
+        },
+        {
+            "title": "Latest gap run",
+            "value": str_or(latest_gap_live["created_at"], "Not yet run") if latest_gap_live else "Not yet run"
+        }
+    ];
+    attentionItems = contributor_attention_items if isContributor else live_attention_items;
+
+    contributor_issue_rows: list = github_issues_live if safeLen(github_issues_live) > 0 else CONTRIBUTOR_GITHUB_ISSUES;
+    contributor_ai_rows: list = [];
+    if safeLen(digest_recommended_live) > 0 {
+        contributor_ai_rows = [
+            {
+                "id": "#" + str(row["issue_number"]),
+                "title": str_or(row["title"], "Untitled issue"),
+                "reason": str_or(row["reason"], "High impact")
+            }
+            for row in digest_recommended_live
+        ];
+    } elif safeLen(gap_suggestions_live) > 0 {
+        idx: int = 1;
+        for row in gap_suggestions_live {
+            contributor_ai_rows = contributor_ai_rows + [
+                {
+                    "id": "GW-" + str(idx),
+                    "title": str_or(row["title"], "Suggested task"),
+                    "reason": str_or(row["description"], "Gap surfaced by analysis")
+                }
+            ];
+            idx = idx + 1;
+        }
+    } else {
+        contributor_ai_rows = CONTRIBUTOR_AI_ISSUES;
+    }
+
+    contributor_doc_rows: list = [
+        {
+            "path": str_or(row["file_path"], ""),
+            "status": "Missing docs",
+            "note": str_or(row["description"], "")
+        }
+        for row in gap_suggestions_live
+        if str(row["suggestion_type"] or "") == "missing_docs"
+    ];
+    if len(contributor_doc_rows) == 0 {
+        contributor_doc_rows = heuristic_doc_rows if len(heuristic_doc_rows) > 0 else CONTRIBUTOR_DOCS_ROWS;
+    }
+
+    contributor_test_rows: list = [
+        {
+            "suite": str_or(row["file_path"], ""),
+            "status": (
+                "Incomplete feature"
+                    if str(row["suggestion_type"] or "") == "incomplete_feature"
+                    else "Missing tests"
+            ),
+            "note": str_or(row["description"], "")
+        }
+        for row in gap_suggestions_live
+        if str(row["suggestion_type"] or "") in ["missing_tests", "incomplete_feature"]
+    ];
+    if len(contributor_test_rows) == 0 {
+        contributor_test_rows = heuristic_test_rows if len(heuristic_test_rows) > 0 else CONTRIBUTOR_TEST_ROWS;
+    }
+
+    contributor_activity_rows: list = [];
+    if latest_pr_live {
+        contributor_activity_rows = contributor_activity_rows + [
+            {
+                "when": str_or(latest_pr_live["created_at"], "recent"),
+                "what": "PR analysis completed for " + parse_pr_ref(str_or(latest_pr_live["pr_url"], ""))
+            }
+        ];
+    }
+    if latest_gap_live {
+        contributor_activity_rows = contributor_activity_rows + [
+            {
+                "when": str_or(latest_gap_live["created_at"], "recent"),
+                "what": "Gap analysis refreshed with " + str(safeLen(gap_suggestions_live)) + " suggestions"
+            }
+        ];
+    }
+    if latest_incident_live {
+        contributor_activity_rows = contributor_activity_rows + [
+            {
+                "when": str_or(latest_incident_live["updated_at"], "recent"),
+                "what": "Incident state is " + str_or(latest_incident_live["status"], "unknown")
+            }
+        ];
+    }
+    if len(contributor_activity_rows) == 0 {
+        contributor_activity_rows = CONTRIBUTOR_ACTIVITY_ROWS;
+    }
+
+    contributor_saved_repos: list = [
+        {"slug": repoDisplay, "role": "Contributor", "pinned": "true"}
+    ] if repoDisplay else CONTRIBUTOR_SAVED_REPOS;
+
+    maintainer_pr_rows: list = [
+        {
+            "pr": parse_pr_ref(str_or(latest_pr_live["pr_url"], "")),
+            "title": str_or(latest_pr_live["pr_url"], "Latest analyzed pull request"),
+            "author": "—",
+            "risk": (
+                str_or(latest_pr_live["verdict"]["overall_risk"], "unknown")
+                if latest_pr_live and latest_pr_live["verdict"]
+                else "unknown"
+            ),
+            "status": str_or(latest_pr_live["created_at"], "recent")
+        }
+    ] if latest_pr_live else MAINTAINER_PR_REVIEW_ROWS;
+
+    maintainer_dependency_rows: list = [
+        {
+            "package": str_or(latest_incident_live["dependency_name"], str_or(latest_incident_live["manifest_path"], "Latest incident")),
+            "change": str_or(latest_incident_live["dependency_version"], str_or(latest_incident_live["commit_sha"], "Observed in current snapshot")),
+            "severity": str_or(latest_incident_live["risk_level"], "unknown"),
+            "note": str_or(latest_incident_live["status"], str_or(latest_incident_live["alert_state"], "Needs review"))
+        }
+    ] if latest_incident_live else MAINTAINER_DEPENDENCY_ROWS;
+
+    maintainer_incident_rows: list = [
+        {
+            "time": str_or(latest_incident_live["updated_at"], str_or(latest_incident_live["created_at"], "recent")),
+            "severity": str_or(latest_incident_live["risk_level"], "unknown"),
+            "title": (
+                "Dependency incident: " + str_or(latest_incident_live["dependency_name"], "current repo")
+            ),
+            "detail": (
+                "Manifest " + str_or(latest_incident_live["manifest_path"], "unknown")
+                    + " is marked " + str_or(latest_incident_live["status"], "open")
+            ),
+            "hint": (
+                str_or(latest_incident_live["fix_pr_url"], "")
+                    if str_or(latest_incident_live["fix_pr_url"], "")
+                    else str_or(latest_incident_live["next_escalation_at"], "Review incident details")
+            )
+        }
+    ] if latest_incident_live else INCIDENTS;
+
+    maintainer_watched_repos: list = [
+        {"slug": repoDisplay, "role": "Lead maintainer", "branch": "main", "pinned": "true"}
+    ] if repoDisplay else MAINTAINER_WATCHED_REPOS;
 
     def setSection(label: str) -> None {
         activeSection = label;
@@ -197,33 +525,33 @@ def:pub AppShell(mode: str) -> JsxElement {
                         + " only — not your whole GitHub account."
                 );
                 searchPlaceholder = "Search paths and symbols in " + repoDisplay;
-                analysisButtonLabel = "Refresh overview";
+                analysisButtonLabel = "Analyze";
             } else {
                 if activeSection == "Suggestions" {
                     panelTitle = "Suggestions · " + repoDisplay;
                     topDescription = (
-                        "GitHub issues from the repository alongside AI-ranked starter tasks for the same codebase."
+                        "Live GitHub issues from the repository alongside ranked starter tasks from the latest digest or gap analysis."
                     );
-                    searchPlaceholder = "Filter tables (demo)";
-                    analysisButtonLabel = "Refresh suggestions";
+                    searchPlaceholder = "Filter issues and suggested tasks";
+                    analysisButtonLabel = "Analyze";
                 } else {
                     if activeSection == "Docs & tests" {
                         panelTitle = "Docs & tests · " + repoDisplay;
                         topDescription = (
-                            "Where documentation and automated tests look thin or stale inside "
+                            "Documentation and testing gaps surfaced by the latest repository analysis for "
                                 + repoDisplay
                                 + "."
                         );
                         searchPlaceholder = "Search doc or test paths";
-                        analysisButtonLabel = "Rescan docs & tests";
+                        analysisButtonLabel = "Analyze";
                     } else {
                         if activeSection == "Activity" {
                             panelTitle = "Activity · " + repoDisplay;
                             topDescription = (
-                                "Recent merges and pushes GhostWatch has seen on " + repoDisplay + "."
+                                "Recent GhostWatch analysis and incident activity on " + repoDisplay + "."
                             );
-                            searchPlaceholder = "Search commit messages (demo)";
-                            analysisButtonLabel = "Refresh activity";
+                            searchPlaceholder = "Search recent GhostWatch events";
+                            analysisButtonLabel = "Analyze";
                         } else {
                             panelTitle = "Settings";
                             topDescription = (
@@ -492,6 +820,10 @@ def:pub AppShell(mode: str) -> JsxElement {
                                         <h2 className="gw-table-panel-title">
                                             Open issues on this repository
                                         </h2>
+                                        {issues_error_live and
+                                            <p className="gw-settings-hint">
+                                                {issues_error_live}
+                                            </p>}
                                         <table className="gw-data-table">
                                             <thead>
                                                 <tr>
@@ -525,7 +857,7 @@ def:pub AppShell(mode: str) -> JsxElement {
                                                             {row["state"]}
                                                         </td>
                                                     </tr>
-                                                    for row in CONTRIBUTOR_GITHUB_ISSUES
+                                                    for row in contributor_issue_rows
                                                 ]}
                                             </tbody>
                                         </table>
@@ -534,6 +866,10 @@ def:pub AppShell(mode: str) -> JsxElement {
                                         <h2 className="gw-table-panel-title">
                                             Recommended by AI
                                         </h2>
+                                        {(digest_summary_live or digest_error_live) and
+                                            <p className="gw-settings-hint">
+                                                {digest_summary_live if digest_summary_live else digest_error_live}
+                                            </p>}
                                         <table className="gw-data-table">
                                             <thead>
                                                 <tr>
@@ -561,7 +897,7 @@ def:pub AppShell(mode: str) -> JsxElement {
                                                             {row["reason"]}
                                                         </td>
                                                     </tr>
-                                                    for row in CONTRIBUTOR_AI_ISSUES
+                                                    for row in contributor_ai_rows
                                                 ]}
                                             </tbody>
                                         </table>
@@ -602,7 +938,7 @@ def:pub AppShell(mode: str) -> JsxElement {
                                                             {row["note"]}
                                                         </td>
                                                     </tr>
-                                                    for row in CONTRIBUTOR_DOCS_ROWS
+                                                    for row in contributor_doc_rows
                                                 ]}
                                             </tbody>
                                         </table>
@@ -638,7 +974,7 @@ def:pub AppShell(mode: str) -> JsxElement {
                                                             {row["note"]}
                                                         </td>
                                                     </tr>
-                                                    for row in CONTRIBUTOR_TEST_ROWS
+                                                    for row in contributor_test_rows
                                                 ]}
                                             </tbody>
                                         </table>
@@ -673,7 +1009,7 @@ def:pub AppShell(mode: str) -> JsxElement {
                                                             {row["what"]}
                                                         </td>
                                                     </tr>
-                                                    for row in CONTRIBUTOR_ACTIVITY_ROWS
+                                                    for row in contributor_activity_rows
                                                 ]}
                                             </tbody>
                                         </table>
@@ -784,14 +1120,14 @@ def:pub AppShell(mode: str) -> JsxElement {
                                                             )}
                                                         </td>
                                                     </tr>
-                                                    for row in CONTRIBUTOR_SAVED_REPOS
+                                                    for row in contributor_saved_repos
                                                 ]}
                                             </tbody>
                                         </table>
                                         <p className="gw-settings-hint">
                                             The repo you linked (
                                             {repoDisplay}
-                                            ) is highlighted when it matches a row above (demo list).
+                                            ) is highlighted when it matches a row above.
                                         </p>
                                     </section>
                                 </main>
@@ -842,7 +1178,7 @@ def:pub AppShell(mode: str) -> JsxElement {
                                                             {row["status"]}
                                                         </td>
                                                     </tr>
-                                                    for row in MAINTAINER_PR_REVIEW_ROWS
+                                                    for row in maintainer_pr_rows
                                                 ]}
                                             </tbody>
                                         </table>
@@ -889,7 +1225,7 @@ def:pub AppShell(mode: str) -> JsxElement {
                                                             {row["note"]}
                                                         </td>
                                                     </tr>
-                                                    for row in MAINTAINER_DEPENDENCY_ROWS
+                                                    for row in maintainer_dependency_rows
                                                 ]}
                                             </tbody>
                                         </table>
@@ -942,7 +1278,7 @@ def:pub AppShell(mode: str) -> JsxElement {
                                                             {incident["hint"]}
                                                         </td>
                                                     </tr>
-                                                    for incident in INCIDENTS
+                                                    for incident in maintainer_incident_rows
                                                 ]}
                                             </tbody>
                                         </table>
@@ -1059,14 +1395,14 @@ def:pub AppShell(mode: str) -> JsxElement {
                                                             )}
                                                         </td>
                                                     </tr>
-                                                    for row in MAINTAINER_WATCHED_REPOS
+                                                    for row in maintainer_watched_repos
                                                 ]}
                                             </tbody>
                                         </table>
                                         <p className="gw-settings-hint">
                                             The linked repo (
                                             {repoDisplay}
-                                            ) is highlighted when it matches a row above (demo list).
+                                            ) is highlighted when it matches a row above.
                                         </p>
                                     </section>
                                 </main>
@@ -1080,22 +1416,37 @@ def:pub AppShell(mode: str) -> JsxElement {
                                     <section
                                         className="gw-graph-panel gw-glass-panel gw-fade-up gw-stagger-5"
                                     >
-                                        <div className="gw-graph-inner-frame"></div>
-                                        <GraphPlaceholderAccent/>
-                                        <div className="gw-graph-copy">
-                                            <span>
-                                                {graphKicker}
-                                            </span>
-                                            <h2>
-                                                {graphTitle}
-                                            </h2>
-                                            <p>
-                                                {graphBody}
-                                            </p>
-                                            <div className="gw-graph-foot">
-                                                {graphFoot}
-                                            </div>
-                                        </div>
+                                        {(graphState and len(graphState["nodes"]) > 0) and
+                                            <GraphView
+                                                nodes_data={graphState["nodes"]}
+                                                edges_data={graphState["edges"]}
+                                                animatingPath={animatingPath}
+                                                analysisLoading={analysisLoading}
+                                                scanResult={analysisResult is not None and not analysisLoading}
+                                            />}
+                                        {(not graphState or len(graphState["nodes"]) == 0) and
+                                            <div>
+                                                <div className="gw-graph-inner-frame"></div>
+                                                <GraphPlaceholderAccent/>
+                                                <div className="gw-graph-copy">
+                                                    <span>
+                                                        {graphKicker}
+                                                    </span>
+                                                    <h2>
+                                                        {graphTitle}
+                                                    </h2>
+                                                    <p>
+                                                        {graphBody}
+                                                    </p>
+                                                    {graphFetchError and
+                                                        <p style={{"color": "rgba(239,68,68,0.8)", "fontSize": "11px", "fontFamily": "monospace"}}>
+                                                            {"fetch error: " + graphFetchError}
+                                                        </p>}
+                                                    <div className="gw-graph-foot">
+                                                        {graphFoot}
+                                                    </div>
+                                                </div>
+                                            </div>}
                                     </section>
                                 </main>
                                 <aside className="gw-right-rail">

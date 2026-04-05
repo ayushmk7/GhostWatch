@@ -47,6 +47,6 @@ with entry {
     _ = load_dotenv();
     _wl = ghostwatch_walkers_registered();
     print("GhostWatch System 1 ready.");
-    print("Step 1: POST /walker/rebuild-graph to build the codebase graph.");
+    print("Step 1: POST /walker/GraphBuilderWalker to build the codebase graph.");
     print("Step 2: Configure GitHub webhook -> POST /walker/git-hub-webhook-walker");
 }

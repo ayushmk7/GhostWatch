@@ -1,5 +1,4 @@
 cl import from react { createContext, useContext, useState, useEffect }
-cl import from "@jac/runtime" { jacSpawn }
 
 cl glob _GRAPH_CTX_BOX: list = [];
 
@@ -15,6 +14,17 @@ def:pub useGraphState() -> object {
     return useContext(Ctx);
 }
 
+async def fetchGraphStateReport() -> object {
+    res = await fetch( # jac:ignore[E1032]
+        "/walker/GraphStateProxy",
+        {"method": "POST", "headers": {"Content-Type": "application/json"}, "body": "{}"}
+    );
+    body = await res.json(); # jac:ignore[E1032]
+    data = body["data"] if body and ("data" in body) else {};
+    reps = data["reports"] if data and ("reports" in data) else [];
+    return reps[0] if reps and len(reps) > 0 else None;
+}
+
 def:pub GraphStateProvider(children: any) -> JsxElement {
     Ctx = _graph_ctx();
     [report, setReport] = useState(None);
@@ -22,24 +32,31 @@ def:pub GraphStateProvider(children: any) -> JsxElement {
     [error, setError] = useState(None);
 
     useEffect(lambda -> None {
+        isMounted = True;
+
         async def runFetch() -> None {
             try {
-                result = await jacSpawn("GraphStateWalker", "", {});
-                reps = (
-                    result["reports"]
-                    if result and ("reports" in result)
-                    else []
-                );
-                setReport(reps[0] if reps else {});
-                setError(None);
-            } except Exception {
-                setError("unavailable");
+                latest = await fetchGraphStateReport();
+                if isMounted {
+                    setReport(latest);
+                    setError(None);
+                }
+            } except Exception as e { # jac:ignore[W2052]
+                if isMounted {
+                    setError(str(e) if str(e) else "unavailable");
+                }
             }
-            setLoading(False);
+            if isMounted {
+                setLoading(False);
+            }
         }
 
         runFetch();
-        setInterval(lambda -> None { runFetch(); }, 5000);
+        timer_id = setInterval(lambda -> None { runFetch(); }, 5000); # jac:ignore[E1032]
+        return lambda -> None {
+            isMounted = False;
+            clearInterval(timer_id); # jac:ignore[E1032]
+        };
     }, []);
 
     ctxVal = {"report": report, "loading": loading, "error": error};
