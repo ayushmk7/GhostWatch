@@ -6,6 +6,7 @@ cl import from .SummaryCard { SummaryCard }
 cl import from .GraphPlaceholderAccent { GraphPlaceholderAccent }
 cl import from .WalkerStatusItem { WalkerStatusItem }
 cl import from .AttentionItem { AttentionItem }
+cl import from .GraphView { GraphView }
 cl import from ..mock_data {
     SIDEBAR_ITEMS,
     SUMMARY_CARDS,
