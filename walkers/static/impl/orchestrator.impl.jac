@@ -42,6 +42,12 @@ impl OrchestratorWalker.orchestrate with Root entry {
             blast=bla_result,
             pr_url=self.pr_url
         );
+        # Always override traversal_paths — LLM does not reliably populate this field
+        verdict.traversal_paths = {
+            "security": sec_result.get("traversal_path", []),
+            "compatibility": com_result.get("traversal_path", []),
+            "blast_radius": bla_result.get("traversal_path", [])
+        };
     } except Exception as e { # jac:ignore[W2052]
         print(f"Merge findings LLM call failed: {e}");
         verdict = VerdictObject(
