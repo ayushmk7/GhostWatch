@@ -24,7 +24,15 @@ cl import from ..mock_data {
     CONTRIBUTOR_SAVED_REPOS,
     MAINTAINER_PR_REVIEW_ROWS,
     MAINTAINER_DEPENDENCY_ROWS,
-    MAINTAINER_WATCHED_REPOS
+    MAINTAINER_WATCHED_REPOS,
+    DEMO_PR_URL,
+    DEMO_REPO_URL
+}
+
+import from typing { Any }
+
+def doFetch(url: str, opts: dict) -> Any {
+    return fetch(url, opts);
 }
 
 def parse_repo_slug(raw: str) -> str {

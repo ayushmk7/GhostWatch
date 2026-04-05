@@ -231,3 +231,6 @@ cl glob:pub CONTRIBUTOR_ATTENTION_ITEMS: list[dict[str, str]] = [
          {"title": "Docs requested for PR #184", "value": "1 thread"},
          {"title": "Merge follow-ups", "value": "2 notes"}
      ];
+
+cl glob:pub DEMO_PR_URL: str = "https://github.com/Aarosunn/ghostwatch-test-target/pull/2";
+cl glob:pub DEMO_REPO_URL: str = "https://github.com/Aarosunn/ghostwatch-test-target";
