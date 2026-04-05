@@ -5,9 +5,13 @@ walker:pub GraphStateProxy {
     can fetch with Root entry {
         resp: Any = requests.post(
             "http://localhost:8080/walker/GraphStateWalker",
-            json={}
+            json={"latest_pr": None, "latest_incident": None, "latest_gap": None}
         );
-        report resp.json();
+        body: Any = resp.json();
+        inner: Any = body.get("reports", []);
+        if len(inner) > 0 {
+            report inner[0];
+        }
     }
 }
 
@@ -19,7 +23,11 @@ walker:pub OrchestratorProxy {
             "http://localhost:8080/walker/OrchestratorWalker",
             json={"pr_url": self.pr_url}
         );
-        report resp.json();
+        body: Any = resp.json();
+        inner: Any = body.get("reports", []);
+        if len(inner) > 0 {
+            report inner[0];
+        }
     }
 }
 

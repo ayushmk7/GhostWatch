@@ -60,7 +60,7 @@ def:pub AppShell(mode: str) -> JsxElement {
             {"method": "POST", "headers": {"Content-Type": "application/json"}, "body": "{}"}
         );
         data: Any = await res.json(); # jac:ignore[E1032]
-        reports: Any = data.get("reports", []); # jac:ignore[E1032]
+        reports: Any = data["reports"] or []; # jac:ignore[E1001]
         if len(reports) > 0 { # jac:ignore[E1053]
             graphState = reports[0]; # jac:ignore[E1001]
         }
@@ -71,7 +71,7 @@ def:pub AppShell(mode: str) -> JsxElement {
         analysisResult = None;
         animatingPath = [];
 
-        body_str: str = f'{{"pr_url": "{DEMO_PR_URL}"}}';
+        body_str: Any = JSON.stringify({"pr_url": DEMO_PR_URL}); # jac:ignore[E1032]
         res: Any = await doFetch(
             "/walker/OrchestratorProxy",
             {
@@ -81,13 +81,13 @@ def:pub AppShell(mode: str) -> JsxElement {
             }
         );
         data: Any = await res.json(); # jac:ignore[E1032]
-        reports: Any = data.get("reports", []); # jac:ignore[E1032]
+        reports: Any = data["reports"] or []; # jac:ignore[E1001]
 
         if len(reports) > 0 { # jac:ignore[E1053]
             result: Any = reports[0]; # jac:ignore[E1001]
             analysisResult = result; # jac:ignore[E1001]
-            paths: Any = result.get("traversal_paths", {}); # jac:ignore[E1032]
-            blast_path: Any = paths.get("blast_radius", []); # jac:ignore[E1032]
+            paths: Any = result["traversal_paths"] or {}; # jac:ignore[E1001]
+            blast_path: Any = paths["blast_radius"] or []; # jac:ignore[E1001]
             animatingPath = blast_path; # jac:ignore[E1001]
         }
 
@@ -102,7 +102,7 @@ def:pub AppShell(mode: str) -> JsxElement {
     sidebarItems = CONTRIBUTOR_SIDEBAR_ITEMS if isContributor else SIDEBAR_ITEMS;
 
     live_nodes: list = graphState["nodes"] if graphState else [];
-    high_risk_count: int = len([n for n in live_nodes if int(n.get("risk_score", 0)) >= 14]);
+    high_risk_count: int = len([n for n in live_nodes if int(n["risk_score"] or 0) >= 14]);
     has_graph_live: bool = graphState["has_graph"] if graphState else False;
     latest_pr_live: dict | None = graphState["latest_analysis"] if graphState else None;
 
@@ -124,7 +124,7 @@ def:pub AppShell(mode: str) -> JsxElement {
         {
             "label": "Latest PR risk",
             "value": (
-                latest_pr_live["verdict"].get("overall_risk", "?")
+                (latest_pr_live["verdict"]["overall_risk"] or "?")
                 if latest_pr_live else "None yet"
             ),
             "delta": "analyzed",
@@ -1180,9 +1180,9 @@ def:pub AppShell(mode: str) -> JsxElement {
                                                 "marginBottom": "16px",
                                                 "borderLeft": "3px solid " + (
                                                     "rgba(239,68,68,0.8)"
-                                                    if analysisResult.get("overall_risk", "") in ["critical", "high"]
+                                                    if (analysisResult["overall_risk"] or "") in ["critical", "high"]
                                                     else "rgba(251,191,36,0.8)"
-                                                    if analysisResult.get("overall_risk", "") == "medium"
+                                                    if (analysisResult["overall_risk"] or "") == "medium"
                                                     else "rgba(125,211,255,0.6)"
                                                 )
                                             }}
@@ -1191,9 +1191,9 @@ def:pub AppShell(mode: str) -> JsxElement {
                                                 <span style={{
                                                     "background": (
                                                         "rgba(239,68,68,0.25)"
-                                                        if analysisResult.get("overall_risk", "") in ["critical", "high"]
+                                                        if (analysisResult["overall_risk"] or "") in ["critical", "high"]
                                                         else "rgba(251,191,36,0.25)"
-                                                        if analysisResult.get("overall_risk", "") == "medium"
+                                                        if (analysisResult["overall_risk"] or "") == "medium"
                                                         else "rgba(125,211,255,0.15)"
                                                     ),
                                                     "color": "rgba(220,239,255,0.9)",
@@ -1204,17 +1204,17 @@ def:pub AppShell(mode: str) -> JsxElement {
                                                     "textTransform": "uppercase",
                                                     "letterSpacing": "0.05em"
                                                 }}>
-                                                    {analysisResult.get("overall_risk", "unknown")}
+                                                    {analysisResult["overall_risk"] or "unknown"}
                                                 </span>
                                                 <span style={{"color": "rgba(220,239,255,0.5)", "fontSize": "12px"}}>
-                                                    {str(len(analysisResult.get("security_findings", []))) + " security · " + str(len(analysisResult.get("compatibility_issues", []))) + " compat"}
+                                                    {str(len(analysisResult["security_findings"] or [])) + " security · " + str(len(analysisResult["compatibility_issues"] or [])) + " compat"}
                                                 </span>
                                             </div>
                                             <p style={{"color": "rgba(220,239,255,0.82)", "fontSize": "13px", "marginBottom": "6px", "lineHeight": "1.5"}}>
-                                                {analysisResult.get("blast_radius_summary", "")}
+                                                {analysisResult["blast_radius_summary"] or ""}
                                             </p>
                                             <p style={{"color": "rgba(125,211,255,0.82)", "fontSize": "12px", "fontStyle": "italic"}}>
-                                                {analysisResult.get("recommendation", "")}
+                                                {analysisResult["recommendation"] or ""}
                                             </p>
                                         </section>}
                                     <section
