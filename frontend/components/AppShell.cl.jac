@@ -6,25 +6,70 @@ cl import from .SummaryCard { SummaryCard }
 cl import from .GraphPlaceholderAccent { GraphPlaceholderAccent }
 cl import from .WalkerStatusItem { WalkerStatusItem }
 cl import from .AttentionItem { AttentionItem }
+cl import from .GraphStateProvider { useGraphState }
 cl import from ..mock_data {
     SIDEBAR_ITEMS,
     SUMMARY_CARDS,
-    INCIDENTS,
-    WALKER_STATUS,
-    ATTENTION_ITEMS,
     CONTRIBUTOR_SIDEBAR_ITEMS,
-    CONTRIBUTOR_SUMMARY_CARDS,
-    CONTRIBUTOR_WALKER_STATUS,
-    CONTRIBUTOR_ATTENTION_ITEMS,
-    CONTRIBUTOR_GITHUB_ISSUES,
-    CONTRIBUTOR_AI_ISSUES,
-    CONTRIBUTOR_DOCS_ROWS,
-    CONTRIBUTOR_TEST_ROWS,
-    CONTRIBUTOR_ACTIVITY_ROWS,
-    CONTRIBUTOR_SAVED_REPOS,
-    MAINTAINER_PR_REVIEW_ROWS,
-    MAINTAINER_DEPENDENCY_ROWS,
-    MAINTAINER_WATCHED_REPOS
+    CONTRIBUTOR_SUMMARY_CARDS
+}
+
+def count_sug_by_type(sugs: list, kind: str) -> int {
+    acc: int = 0;
+    for s in sugs {
+        if s and ("suggestion_type" in s) and str(s["suggestion_type"]) == kind {
+            acc += 1;
+        }
+    }
+    return acc;
+}
+
+def maintainer_card_value(label: str, inc: object) -> str {
+    if label == "Critical Findings" {
+        if inc and ("risk_level" in inc) {
+            return str(inc["risk_level"]);
+        }
+    }
+    if label == "Dependency Drift" {
+        if inc and ("dependency_name" in inc) {
+            return str(inc["dependency_name"]);
+        }
+    }
+    return "—";
+}
+
+def maintainer_card_delta(label: str, inc: object) -> str {
+    if label == "Dependency Drift" {
+        if inc and ("status" in inc) {
+            return str(inc["status"]);
+        }
+    }
+    if label == "Critical Findings" {
+        if inc and ("rule_codes" in inc) {
+            return str(inc["rule_codes"]);
+        }
+    }
+    return "—";
+}
+
+def contributor_card_value(label: str, sugs: list) -> str {
+    if label == "Open issues (linked repo)" {
+        return str(len(sugs));
+    }
+    if label == "Untested paths" {
+        return str(count_sug_by_type(sugs, "missing_tests"));
+    }
+    if label == "Docs gaps" {
+        return str(count_sug_by_type(sugs, "missing_docs"));
+    }
+    return "—";
+}
+
+def contributor_card_delta(label: str, sugs: list) -> str {
+    if label == "Open issues (linked repo)" {
+        return "from latest gap run";
+    }
+    return "—";
 }
 
 def parse_repo_slug(raw: str) -> str {
@@ -43,10 +88,185 @@ def:pub AppShell(mode: str) -> JsxElement {
         repoLinked: bool = False,
         repoDisplay: str = "";
 
+    gs = useGraphState();
+    graphPayload = None;
+    if gs and ("report" in gs) {
+        graphPayload = gs["report"];
+    }
+    latestIncident = None;
+    if graphPayload and ("latest_incident" in graphPayload) {
+        latestIncident = graphPayload["latest_incident"];
+    }
+    latestGap = None;
+    if graphPayload and ("latest_gap_analysis" in graphPayload) {
+        latestGap = graphPayload["latest_gap_analysis"];
+    }
+    gapSuggestions = [];
+    if latestGap and ("suggestions" in latestGap) {
+        gapSuggestions = latestGap["suggestions"];
+    }
+
     sidebarItems = CONTRIBUTOR_SIDEBAR_ITEMS if isContributor else SIDEBAR_ITEMS;
-    summaryCards = CONTRIBUTOR_SUMMARY_CARDS if isContributor else SUMMARY_CARDS;
-    walkerItems = CONTRIBUTOR_WALKER_STATUS if isContributor else WALKER_STATUS;
-    attentionItems = CONTRIBUTOR_ATTENTION_ITEMS if isContributor else ATTENTION_ITEMS;
+    baseSummary = SUMMARY_CARDS;
+    if isContributor {
+        baseSummary = CONTRIBUTOR_SUMMARY_CARDS;
+    }
+    summaryCards = [];
+    for card in baseSummary {
+        lab = str(card["label"]);
+        nv = (
+            maintainer_card_value(lab, latestIncident)
+            if not isContributor
+            else contributor_card_value(lab, gapSuggestions)
+        );
+        nd = (
+            maintainer_card_delta(lab, latestIncident)
+            if not isContributor
+            else contributor_card_delta(lab, gapSuggestions)
+        );
+        summaryCards.append(
+            {
+                "label": lab,
+                "value": nv,
+                "delta": nd,
+                "tone": str(card["tone"]),
+                "spark": str(card["spark"])
+            }
+        );
+    }
+
+    walkerItems = [];
+    if isContributor {
+        if latestGap and gapSuggestions {
+            walkerItems.append({"name": "GapAnalysisWalker", "state": "Watching"});
+        }
+    } else {
+        if latestIncident {
+            st = (
+                str(latestIncident["status"])
+                if "status" in latestIncident
+                else "—"
+            );
+            walkerItems.append({"name": "System 2 pipeline", "state": st});
+        }
+    }
+
+    attentionItems = [];
+    if latestIncident {
+        fx = "";
+        if "fix_pr_url" in latestIncident {
+            fx = str(latestIncident["fix_pr_url"]);
+        }
+        if fx {
+            attentionItems.append({"title": "Fix PR ready", "value": fx});
+        }
+    }
+    if gapSuggestions {
+        attentionItems.append(
+            {
+                "title": "Gap suggestions",
+                "value": str(len(gapSuggestions)) + " items"
+            }
+        );
+    }
+
+    incidentRows = [];
+    if latestIncident {
+        lic = latestIncident;
+        h = "—";
+        if "fix_pr_url" in lic {
+            if lic["fix_pr_url"] {
+                h = str(lic["fix_pr_url"]);
+            }
+        }
+        detail = str(lic["status"]) if "status" in lic else "—";
+        incidentRows.append(
+            {
+                "time": str(lic["updated_at"]) if "updated_at" in lic else "—",
+                "severity": str(lic["risk_level"]) if "risk_level" in lic else "—",
+                "title": str(lic["dependency_name"]) if "dependency_name" in lic else "—",
+                "detail": detail,
+                "hint": h
+            }
+        );
+    }
+
+    depRows = [];
+    if latestIncident {
+        lic = latestIncident;
+        ch = "—";
+        if "dependency_version" in lic {
+            if lic["dependency_version"] {
+                ch = str(lic["dependency_version"]);
+            }
+        }
+        if ch == "—" and ("manifest_path" in lic) {
+            ch = str(lic["manifest_path"]);
+        }
+        rc = "";
+        if "rule_codes" in lic {
+            rc = str(lic["rule_codes"]);
+        }
+        stx = str(lic["status"]) if "status" in lic else "";
+        depRows.append(
+            {
+                "package": str(lic["dependency_name"]) if "dependency_name" in lic else "—",
+                "change": ch,
+                "severity": str(lic["risk_level"]) if "risk_level" in lic else "—",
+                "note": stx + " · " + rc
+            }
+        );
+    }
+
+    prRows = [];
+    ghIssueRows = [];
+    actRows = [];
+    contribAiRows = [];
+    for s in gapSuggestions {
+        if s {
+            contribAiRows.append(
+                {
+                    "id": "·",
+                    "title": str(s["title"]) if "title" in s else "—",
+                    "reason": str(s["description"]) if "description" in s else "—"
+                }
+            );
+        }
+    }
+    docGapRows = [];
+    testGapRows = [];
+    for s in gapSuggestions {
+        if not s {
+            continue;
+        }
+        st = str(s["suggestion_type"]) if "suggestion_type" in s else "";
+        fp = str(s["file_path"]) if "file_path" in s else "—";
+        if st == "missing_docs" or st == "incomplete_feature" {
+            docGapRows.append(
+                {
+                    "path": fp,
+                    "status": st,
+                    "note": str(s["description"]) if "description" in s else "—"
+                }
+            );
+        }
+        if st == "missing_tests" {
+            testGapRows.append(
+                {
+                    "suite": fp,
+                    "status": str(s["difficulty"]) if "difficulty" in s else "—",
+                    "note": str(s["title"]) if "title" in s else "—"
+                }
+            );
+        }
+    }
+    watchedRepos = [];
+    savedRepos = [];
+
+    notifCount = "";
+    if latestIncident {
+        notifCount = "1";
+    }
 
     def setSection(label: str) -> None {
         activeSection = label;
@@ -64,7 +284,7 @@ def:pub AppShell(mode: str) -> JsxElement {
     topDescription = (
         "Paste a repository URL to scope this workspace. Overview and every tab stay limited to that project."
     );
-    searchPlaceholder = "Available after you connect a repo";
+    searchPlaceholder = "";
     analysisButtonLabel = "Connect";
 
     if repoLinked {
@@ -77,7 +297,6 @@ def:pub AppShell(mode: str) -> JsxElement {
                         + repoDisplay
                         + " only — not your whole GitHub account."
                 );
-                searchPlaceholder = "Search paths and symbols in " + repoDisplay;
                 analysisButtonLabel = "Refresh overview";
             } else {
                 if activeSection == "Suggestions" {
@@ -85,7 +304,6 @@ def:pub AppShell(mode: str) -> JsxElement {
                     topDescription = (
                         "GitHub issues from the repository alongside AI-ranked starter tasks for the same codebase."
                     );
-                    searchPlaceholder = "Filter tables (demo)";
                     analysisButtonLabel = "Refresh suggestions";
                 } else {
                     if activeSection == "Docs & tests" {
@@ -95,7 +313,6 @@ def:pub AppShell(mode: str) -> JsxElement {
                                 + repoDisplay
                                 + "."
                         );
-                        searchPlaceholder = "Search doc or test paths";
                         analysisButtonLabel = "Rescan docs & tests";
                     } else {
                         if activeSection == "Activity" {
@@ -103,14 +320,12 @@ def:pub AppShell(mode: str) -> JsxElement {
                             topDescription = (
                                 "Recent merges and pushes GhostWatch has seen on " + repoDisplay + "."
                             );
-                            searchPlaceholder = "Search commit messages (demo)";
                             analysisButtonLabel = "Refresh activity";
                         } else {
                             panelTitle = "Settings";
                             topDescription = (
                                 "Notification defaults and every repository you have added to your contributor workspace."
                             );
-                            searchPlaceholder = "Search settings";
                             analysisButtonLabel = "Save changes";
                         }
                     }
@@ -124,7 +339,6 @@ def:pub AppShell(mode: str) -> JsxElement {
                         + repoDisplay
                         + ": pull requests under watch, walker signals, and maintainer-sized attention items."
                 );
-                searchPlaceholder = "Search alerts, walkers, or paths in " + repoDisplay;
                 analysisButtonLabel = "Refresh desk";
             } else {
                 if activeSection == "PR Review" {
@@ -134,7 +348,6 @@ def:pub AppShell(mode: str) -> JsxElement {
                             + repoDisplay
                             + " with risk hints and gate status."
                     );
-                    searchPlaceholder = "Search PR titles or authors";
                     analysisButtonLabel = "Refresh PR list";
                 } else {
                     if activeSection == "Dependency Alerts" {
@@ -142,7 +355,6 @@ def:pub AppShell(mode: str) -> JsxElement {
                         topDescription = (
                             "Manifest drift, version jumps, and supply-chain signals scoped to " + repoDisplay + "."
                         );
-                        searchPlaceholder = "Search packages or CVEs";
                         analysisButtonLabel = "Rescan dependencies";
                     } else {
                         if activeSection == "Incidents" {
@@ -152,14 +364,12 @@ def:pub AppShell(mode: str) -> JsxElement {
                                     + repoDisplay
                                     + " — the same feed the defense desk would own in production."
                             );
-                            searchPlaceholder = "Search incident titles";
                             analysisButtonLabel = "Refresh incidents";
                         } else {
                             panelTitle = "Settings";
                             topDescription = (
                                 "How the maintainer desk notifies you and which repositories stay on the watch list."
                             );
-                            searchPlaceholder = "Search settings";
                             analysisButtonLabel = "Save changes";
                         }
                     }
@@ -279,7 +489,7 @@ def:pub AppShell(mode: str) -> JsxElement {
                                     <input
                                         className="gw-repo-connect-input"
                                         type="url"
-                                        placeholder="https://github.com/owner/repo"
+                                        placeholder=""
                                         value={repoInput}
                                         onChange={lambda e: ChangeEvent { repoInput = e.target.value; }}
                                     />
@@ -386,7 +596,7 @@ def:pub AppShell(mode: str) -> JsxElement {
                                             ></path>
                                         </svg>
                                         <span className="gw-icon-badge">
-                                            3
+                                            {notifCount}
                                         </span>
                                     </button>
                                     <button
@@ -438,7 +648,7 @@ def:pub AppShell(mode: str) -> JsxElement {
                                                             {row["state"]}
                                                         </td>
                                                     </tr>
-                                                    for row in CONTRIBUTOR_GITHUB_ISSUES
+                                                    for row in ghIssueRows
                                                 ]}
                                             </tbody>
                                         </table>
@@ -474,7 +684,7 @@ def:pub AppShell(mode: str) -> JsxElement {
                                                             {row["reason"]}
                                                         </td>
                                                     </tr>
-                                                    for row in CONTRIBUTOR_AI_ISSUES
+                                                    for row in contribAiRows
                                                 ]}
                                             </tbody>
                                         </table>
@@ -515,7 +725,7 @@ def:pub AppShell(mode: str) -> JsxElement {
                                                             {row["note"]}
                                                         </td>
                                                     </tr>
-                                                    for row in CONTRIBUTOR_DOCS_ROWS
+                                                    for row in docGapRows
                                                 ]}
                                             </tbody>
                                         </table>
@@ -551,7 +761,7 @@ def:pub AppShell(mode: str) -> JsxElement {
                                                             {row["note"]}
                                                         </td>
                                                     </tr>
-                                                    for row in CONTRIBUTOR_TEST_ROWS
+                                                    for row in testGapRows
                                                 ]}
                                             </tbody>
                                         </table>
@@ -586,7 +796,7 @@ def:pub AppShell(mode: str) -> JsxElement {
                                                             {row["what"]}
                                                         </td>
                                                     </tr>
-                                                    for row in CONTRIBUTOR_ACTIVITY_ROWS
+                                                    for row in actRows
                                                 ]}
                                             </tbody>
                                         </table>
@@ -697,7 +907,7 @@ def:pub AppShell(mode: str) -> JsxElement {
                                                             )}
                                                         </td>
                                                     </tr>
-                                                    for row in CONTRIBUTOR_SAVED_REPOS
+                                                    for row in savedRepos
                                                 ]}
                                             </tbody>
                                         </table>
@@ -755,7 +965,7 @@ def:pub AppShell(mode: str) -> JsxElement {
                                                             {row["status"]}
                                                         </td>
                                                     </tr>
-                                                    for row in MAINTAINER_PR_REVIEW_ROWS
+                                                    for row in prRows
                                                 ]}
                                             </tbody>
                                         </table>
@@ -802,7 +1012,7 @@ def:pub AppShell(mode: str) -> JsxElement {
                                                             {row["note"]}
                                                         </td>
                                                     </tr>
-                                                    for row in MAINTAINER_DEPENDENCY_ROWS
+                                                    for row in depRows
                                                 ]}
                                             </tbody>
                                         </table>
@@ -855,7 +1065,7 @@ def:pub AppShell(mode: str) -> JsxElement {
                                                             {incident["hint"]}
                                                         </td>
                                                     </tr>
-                                                    for incident in INCIDENTS
+                                                    for incident in incidentRows
                                                 ]}
                                             </tbody>
                                         </table>
@@ -972,7 +1182,7 @@ def:pub AppShell(mode: str) -> JsxElement {
                                                             )}
                                                         </td>
                                                     </tr>
-                                                    for row in MAINTAINER_WATCHED_REPOS
+                                                    for row in watchedRepos
                                                 ]}
                                             </tbody>
                                         </table>

@@ -39,13 +39,20 @@ impl GraphStateWalker.collect_incident with GhostwatchIncidentNode entry {
     cand = {
         "id": str(jid(here)),
         "dedupe_key": here.dedupe_key,
+        "repo_full_name": here.repo_full_name,
+        "commit_sha": here.commit_sha,
         "status": here.status,
         "risk_level": here.risk_level,
         "dependency_name": here.dependency_name,
+        "dependency_version": here.dependency_version,
         "manifest_path": here.manifest_path,
+        "rule_codes": here.rule_codes,
         "fix_pr_url": here.fix_pr_url,
         "sandbox_result": here.sandbox_result,
         "behavioral_trace": here.behavioral_trace,
+        "next_escalation_at": here.next_escalation_at,
+        "alert_state": here.alert_state,
+        "created_at": here.created_at,
         "updated_at": here.updated_at
     };
     if not self.latest_incident {
