@@ -1,7 +1,7 @@
-# lib/repo_demo_env.jac — Demo repo URL for UI (fixed product scope: jaseci monorepo only).
+# lib/repo_demo_env.jac — Demo repo URL for UI (GhostWatch repo as demo target).
 
 def:pub ghostwatch_demo_repo_url() -> str {
-    return "https://github.com/jaseci-labs/jaseci";
+    return "https://github.com/ayushmk7/GhostWatch";
 }
 
 def:pub ghostwatch_demo_repo_slug(url: str) -> str {
@@ -10,5 +10,5 @@ def:pub ghostwatch_demo_repo_slug(url: str) -> str {
     t = t.replace("http://github.com/", "");
     t = t.replace("github.com/", "");
     t = t.strip().strip("/");
-    return t if t else "jaseci-labs/jaseci";
+    return t if t else "ayushmk7/GhostWatch";
 }

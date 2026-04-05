@@ -232,8 +232,8 @@ cl glob:pub CONTRIBUTOR_ATTENTION_ITEMS: list[dict[str, str]] = [
          {"title": "Merge follow-ups", "value": "2 notes"}
      ];
 
-cl glob:pub DEMO_PR_URL: str = "https://github.com/Aarosunn/ghostwatch-test-target/pull/2";
-cl glob:pub DEMO_REPO_URL: str = "https://github.com/Aarosunn/ghostwatch-test-target";
+cl glob:pub DEMO_PR_URL: str = "https://github.com/ayushmk7/GhostWatch/pull/1";
+cl glob:pub DEMO_REPO_URL: str = "https://github.com/ayushmk7/GhostWatch";
 
 cl glob:pub CLAUDE_JASECI_CONTEXT_PARAS: list[str] = [
     (
