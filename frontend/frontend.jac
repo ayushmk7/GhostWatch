@@ -433,13 +433,87 @@ input {
   inset: 15px 8px 9px 15px;
 }
 
-.gw-corner-skip {
-  position: fixed;
-  top: 22px;
-  right: 24px;
-  z-index: 20;
-  font-size: 0.88rem;
+.gw-role-panel {
+  max-width: 920px;
+  margin: 0 auto;
+  padding-top: 48px;
+}
+
+.gw-role-head {
+  text-align: center;
+  margin-bottom: 36px;
+}
+
+.gw-role-title {
+  margin: 12px 0 14px;
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 4vw, 2.75rem);
+  font-weight: var(--weight-black);
+  letter-spacing: -0.04em;
+  line-height: 1.1;
+}
+
+.gw-role-sub {
+  margin: 0 auto;
+  max-width: 52ch;
+  color: var(--text-secondary);
+  font-size: 1.05rem;
+  line-height: 1.75;
+}
+
+.gw-role-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.gw-role-card {
+  display: block;
+  padding: 26px 26px 24px;
+  border-radius: 22px;
+  color: inherit;
+  text-decoration: none;
+  border: 1px solid rgba(220, 239, 255, 0.14);
+  transition: border-color 0.25s var(--ease-out), transform 0.25s var(--ease-out);
+}
+
+.gw-role-card:hover {
+  border-color: rgba(125, 211, 255, 0.4);
+  transform: translateY(-3px);
+}
+
+.gw-role-card-kicker {
+  font-size: 0.78rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--accent-cyan);
   font-weight: var(--weight-label);
+  margin-bottom: 10px;
+}
+
+.gw-role-card-title {
+  font-family: var(--font-display);
+  font-size: 1.35rem;
+  margin: 0 0 10px;
+  font-weight: var(--weight-bold);
+}
+
+.gw-role-card-body {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 0.98rem;
+  line-height: 1.65;
+}
+
+.gw-role-back {
+  display: inline-flex;
+  margin-bottom: 22px;
+  font-size: 0.92rem;
+  color: var(--text-secondary);
+}
+
+.gw-role-back:hover {
+  color: var(--text-primary);
 }
 
 .gw-landing-main {
@@ -1815,10 +1889,6 @@ input {
 }
 
 @media (max-width: 980px) {
-  .gw-corner-skip {
-    right: 20px;
-  }
-
   .gw-page-inner {
     width: min(100vw - 28px, 100%);
   }
@@ -1847,6 +1917,10 @@ input {
     grid-template-columns: 1fr;
   }
 
+  .gw-role-grid {
+    grid-template-columns: 1fr;
+  }
+
   .gw-sidebar {
     order: 0;
   }
@@ -1870,14 +1944,8 @@ input {
     padding-top: 18px;
   }
 
-  .gw-corner-skip {
-    position: absolute;
-    top: 18px;
-    right: 0;
-  }
-
   .gw-shell-nav {
-    padding-top: 72px;
+    padding-top: 12px;
   }
 
   .gw-hero-telemetry,
@@ -2089,6 +2157,87 @@ cl glob SESSION_NOTES: list[str] = [
          "Every hardcoded value in this screen lives in centralized constants so backend walker responses can replace them later."
      ];
 
+cl glob CONTRIBUTOR_SIDEBAR_ITEMS: list[dict[str, str]] = [
+         {"icon": "OV", "label": "Overview", "meta": "Your workspace"},
+         {"icon": "SG", "label": "Suggestions", "meta": "Gap analysis picks"},
+         {"icon": "DC", "label": "Docs & tests", "meta": "Coverage hints"},
+         {"icon": "AC", "label": "Activity", "meta": "Recent merges"},
+         {"icon": "ST", "label": "Settings", "meta": "Demo controls"}
+     ];
+
+cl glob CONTRIBUTOR_SUMMARY_CARDS: list[dict[str, str]] = [
+         {
+             "label": "Open suggestions",
+             "value": "05",
+             "delta": "from latest gap run",
+             "tone": "frost",
+             "spark": "6,32 42,22 80,18 122,24 160,12 198,16 236,14 274,10"
+         },
+         {
+             "label": "Untested paths",
+             "value": "08",
+             "delta": "3 quick wins",
+             "tone": "cyan",
+             "spark": "6,30 42,28 80,20 122,26 160,16 198,14 236,12 274,11"
+         },
+         {
+             "label": "Docs gaps",
+             "value": "04",
+             "delta": "Jac modules noted",
+             "tone": "aqua",
+             "spark": "6,26 42,22 80,24 122,18 160,20 198,11 236,14 274,9"
+         },
+         {
+             "label": "Merge velocity",
+             "value": "72%",
+             "delta": "rolling window",
+             "tone": "amber",
+             "spark": "6,34 42,24 80,22 122,18 160,20 198,13 236,10 274,12"
+         }
+     ];
+
+cl glob CONTRIBUTOR_SUGGESTIONS: list[dict[str, str]] = [
+         {
+             "time": "10:22",
+             "severity": "medium",
+             "title": "Document public walker exports",
+             "detail": "A Jac module exposes graph walkers without an adjacent docs section in the design tree.",
+             "hint": "Open doc outline"
+         },
+         {
+             "time": "09:58",
+             "severity": "high",
+             "title": "Add tests for dependency diff walker",
+             "detail": "New manifest parsing paths are not linked to TestNode entries in the demo graph.",
+             "hint": "View test graph"
+         },
+         {
+             "time": "09:30",
+             "severity": "medium",
+             "title": "Fill stub in sandbox result view",
+             "detail": "Placeholder module under core UI still reads as incomplete_feature in gap ranking.",
+             "hint": "Claim slice"
+         }
+     ];
+
+cl glob CONTRIBUTOR_WALKER_STATUS: list[dict[str, str]] = [
+         {"name": "GapAnalysisWalker", "state": "Watching"},
+         {"name": "Graph doc linker", "state": "Queued"},
+         {"name": "Contributor ranker", "state": "Active"}
+     ];
+
+cl glob CONTRIBUTOR_ATTENTION_ITEMS: list[dict[str, str]] = [
+         {"title": "Suggestions ready to pick up", "value": "3 open"},
+         {"title": "Docs requested for PR #184", "value": "1 thread"},
+         {"title": "Merge follow-ups", "value": "2 notes"}
+     ];
+
+cl glob CONTRIBUTOR_SESSION_NOTES: list[str] = [
+         "Contributor view highlights gap-analysis output and documentation signals—placeholders until GapAnalysisWalker is live on your repo.",
+         "Suggestions map to System 2 contributor picks: a small, ranked set rather than the full maintainer escalation feed.",
+         "Switch to the lead maintainer home anytime via the marketing site path to compare control-room telemetry."
+     ];
+
 cl {
     def toneClass(tone: str) -> str {
         return (
@@ -2139,16 +2288,6 @@ cl {
                     </span>
                 </div>
             </div>;
-    }
-
-    def CornerSkipButton(label: str) -> JsxElement {
-        return
-            <Link
-                to="/app"
-                className="gw-corner-skip gw-glass-button gw-button-secondary gw-fade-up gw-stagger-1"
-            >
-                {label}
-            </Link>;
     }
 
     def AmbientBackground(screen: str) -> JsxElement {
@@ -2390,88 +2529,6 @@ cl {
                     strokeWidth="2"
                     strokeLinecap="round"
                     strokeLinejoin="round"
-                ></path>
-            </svg>;
-    }
-
-    def AuthOrbitGraphic() -> JsxElement {
-        return
-            <svg
-                className="gw-auth-visual gw-fade-up gw-stagger-3"
-                viewBox="0 0 520 520"
-                fill="none"
-                aria-hidden="true"
-            >
-                <defs>
-                    <linearGradient id="gwAuthGlow" x1="98" y1="110" x2="412" y2="410">
-                        <stop stopColor="rgba(220,239,255,0.74)"></stop>
-                        <stop offset="0.52" stopColor="rgba(125,211,255,0.34)"></stop>
-                        <stop offset="1" stopColor="rgba(82,229,213,0.48)"></stop>
-                    </linearGradient>
-                </defs>
-                <circle
-                    cx="260"
-                    cy="260"
-                    r="154"
-                    stroke="rgba(220,239,255,0.16)"
-                    strokeWidth="1.2"
-                ></circle>
-                <circle
-                    cx="260"
-                    cy="260"
-                    r="124"
-                    stroke="rgba(220,239,255,0.12)"
-                    strokeWidth="1.2"
-                    strokeDasharray="8 12"
-                ></circle>
-                <circle
-                    cx="260"
-                    cy="260"
-                    r="94"
-                    stroke="rgba(82,229,213,0.16)"
-                    strokeWidth="1.2"
-                ></circle>
-                <path
-                    d="M260 118C213 144 185 151 162 151V252C162 316 202 371 260 402C318 371 358 316 358 252V151C335 151 307 144 260 118Z"
-                    fill="rgba(220,239,255,0.06)"
-                    stroke="url(#gwAuthGlow)"
-                    strokeWidth="1.6"
-                ></path>
-                <rect
-                    x="228"
-                    y="214"
-                    width="64"
-                    height="62"
-                    rx="16"
-                    stroke="rgba(220,239,255,0.5)"
-                    strokeWidth="1.6"
-                ></rect>
-                <path
-                    d="M238 214V197C238 179 247 166 260 166C273 166 282 179 282 197V214"
-                    stroke="rgba(125,211,255,0.74)"
-                    strokeWidth="1.6"
-                    strokeLinecap="round"
-                ></path>
-                <circle cx="260" cy="242" r="8" fill="rgba(220,239,255,0.8)"></circle>
-                <path
-                    d="M260 250V263"
-                    stroke="rgba(220,239,255,0.8)"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                ></path>
-                <circle cx="130" cy="202" r="6" fill="rgba(82,229,213,0.7)"></circle>
-                <circle cx="390" cy="300" r="6" fill="rgba(125,211,255,0.74)"></circle>
-                <path
-                    d="M120 196C144 166 170 148 208 132"
-                    stroke="rgba(82,229,213,0.32)"
-                    strokeWidth="1.2"
-                    strokeDasharray="6 10"
-                ></path>
-                <path
-                    d="M402 294C370 332 340 354 302 372"
-                    stroke="rgba(125,211,255,0.32)"
-                    strokeWidth="1.2"
-                    strokeDasharray="6 10"
                 ></path>
             </svg>;
     }
@@ -2770,7 +2827,6 @@ cl {
         return
             <div className="gw-page">
                 <AmbientBackground screen="landing"/>
-                <CornerSkipButton label="Skip Auth"/>
                 <div className="gw-page-inner gw-page-inner--landing">
                     <header
                         className="gw-shell-nav gw-glass-panel gw-fade-up gw-stagger-1"
@@ -2790,8 +2846,8 @@ cl {
                                 Demo
                             </a>
                         </nav>
-                        <Link to="/auth" className="gw-glass-button gw-button-primary">
-                            Enter GhostWatch
+                        <Link to="/start" className="gw-glass-button gw-button-primary">
+                            Getting started
                         </Link>
                     </header>
                     <main className="gw-landing-main">
@@ -2811,17 +2867,17 @@ cl {
                                 </div>
                                 <div className="gw-hero-actions gw-fade-up gw-stagger-6">
                                     <Link
-                                        to="/app"
+                                        to="/start"
                                         className="gw-glass-button gw-button-primary"
                                     >
-                                        Launch Demo
+                                        Getting started
                                     </Link>
-                                    <Link
-                                        to="/auth"
+                                    <a
+                                        href="#capabilities"
                                         className="gw-glass-button gw-button-secondary"
                                     >
-                                        View Access
-                                    </Link>
+                                        Explore product
+                                    </a>
                                 </div>
                                 <div
                                     className="gw-system-strip gw-glass-panel gw-fade-up gw-stagger-7"
@@ -2948,24 +3004,18 @@ cl {
                             >
                                 <div className="gw-cta-copy">
                                     <h3>
-                                        Enter the control room without waiting for backend wiring.
+                                        Choose how you want to explore GhostWatch.
                                     </h3>
                                     <p>
-                                        The demo path is open now, and the authentication route remains in view for the future live workflow.
+                                        Contributors see gap-analysis style suggestions; lead maintainers open the incident control room. No sign-in in this demo—just pick a role and go.
                                     </p>
                                 </div>
                                 <div className="gw-cta-actions">
                                     <Link
-                                        to="/auth"
-                                        className="gw-glass-button gw-button-secondary"
-                                    >
-                                        Continue to Auth
-                                    </Link>
-                                    <Link
-                                        to="/app"
+                                        to="/start"
                                         className="gw-glass-button gw-button-primary"
                                     >
-                                        Skip Straight to App
+                                        Getting started
                                     </Link>
                                 </div>
                             </div>
@@ -2975,185 +3025,174 @@ cl {
             </div>;
     }
 
-    def AuthPage() -> JsxElement {
+    def RoleSelectPage() -> JsxElement {
         return
             <div className="gw-page">
-                <AmbientBackground screen="auth"/>
-                <CornerSkipButton label="Skip Auth for Now"/>
-                <div className="gw-page-inner gw-page-inner--auth">
-                    <div className="gw-auth-grid">
-                        <div className="gw-auth-story">
-                            <GhostWatchWordmark/>
+                <AmbientBackground screen="landing"/>
+                <div className="gw-page-inner gw-page-inner--landing">
+                    <Link to="/" className="gw-role-back gw-fade-up gw-stagger-1">
+                        Back to marketing site
+                    </Link>
+                    <div className="gw-role-panel">
+                        <div className="gw-role-head">
                             <div className="gw-kicker gw-fade-up gw-stagger-1">
-                                Access gateway
+                                GhostWatch
                             </div>
-                            <h1 className="gw-auth-title gw-fade-up gw-stagger-2">
-                                Enter the GhostWatch control room.
+                            <h1 className="gw-role-title gw-fade-up gw-stagger-2">
+                                How will you use GhostWatch?
                             </h1>
-                            <p className="gw-auth-copy gw-fade-up gw-stagger-3">
-                                Maintainers can sign in to unlock live review workflows later, while this demo build remains explorable immediately without authentication.
+                            <p className="gw-role-sub gw-fade-up gw-stagger-3">
+                                Pick the workspace that matches your responsibilities. This demo keeps both paths local until real accounts and repo scopes are wired in.
                             </p>
-                            <AuthOrbitGraphic/>
                         </div>
-                        <div className="gw-auth-surface">
-                            <section
-                                className="gw-auth-card gw-glass-panel gw-fade-up gw-stagger-3"
+                        <div className="gw-role-grid">
+                            <Link
+                                to="/app/contributor"
+                                className="gw-role-card gw-glass-panel gw-fade-up gw-stagger-4"
                             >
-                                <div className="gw-auth-card-header">
-                                    <h2>
-                                        Access surface
-                                    </h2>
-                                    <p>
-                                        The controls below are styled as the real handoff layer, while demo routing keeps the experience unblocked for now.
-                                    </p>
+                                <div className="gw-role-card-kicker">
+                                    I ship changes
                                 </div>
-                                <div className="gw-auth-form">
-                                    <div className="gw-provider-grid">
-                                        <Link to="/app" className="gw-provider-button">
-                                            <svg
-                                                className="gw-provider-icon"
-                                                viewBox="0 0 24 24"
-                                                fill="none"
-                                                aria-hidden="true"
-                                            >
-                                                <path
-                                                    d="M12 3.5C7.3 3.5 3.5 7.3 3.5 12C3.5 15.7 5.8 18.9 9 20.1V17.7C7.4 18 7 16.9 7 16.9C6.6 15.9 6 15.6 6 15.6C5.2 15.1 6 15.1 6 15.1C6.9 15.1 7.3 16 7.3 16C8 17.3 9.2 16.9 9.6 16.7C9.7 16.1 10 15.7 10.3 15.5C8.1 15.3 5.8 14.4 5.8 10.3C5.8 9.1 6.2 8.2 6.8 7.4C6.7 7.2 6.4 6.2 6.9 4.8C6.9 4.8 7.8 4.5 9.9 5.8C10.7 5.6 11.4 5.5 12.2 5.5C13 5.5 13.8 5.6 14.5 5.8C16.7 4.5 17.6 4.8 17.6 4.8C18.1 6.2 17.8 7.2 17.7 7.4C18.3 8.2 18.7 9.1 18.7 10.3C18.7 14.4 16.4 15.3 14.2 15.5C14.6 15.8 14.9 16.3 14.9 17.2V20.1C18.1 18.9 20.4 15.7 20.4 12C20.4 7.3 16.6 3.5 12 3.5Z"
-                                                    stroke="rgba(220,239,255,0.82)"
-                                                    strokeWidth="1.1"
-                                                ></path>
-                                            </svg>
-                                            Continue with GitHub
-                                        </Link>
-                                        <Link to="/app" className="gw-provider-button">
-                                            <svg
-                                                className="gw-provider-icon"
-                                                viewBox="0 0 24 24"
-                                                fill="none"
-                                                aria-hidden="true"
-                                            >
-                                                <path
-                                                    d="M8.1 6.1C9 5.7 10 5.4 11 5.2L11.3 5.8C10.2 5.9 9.2 6.2 8.2 6.7M15.9 6.1C15 5.7 14 5.4 13 5.2L12.7 5.8C13.8 5.9 14.8 6.2 15.8 6.7M6.3 16.2C7.3 17 8.5 17.6 9.8 18L10.5 16.9C9.7 16.6 8.9 16.2 8.2 15.7M17.7 16.2C16.7 17 15.5 17.6 14.2 18L13.5 16.9C14.3 16.6 15.1 16.2 15.8 15.7"
-                                                    stroke="rgba(220,239,255,0.8)"
-                                                    strokeWidth="1.2"
-                                                    strokeLinecap="round"
-                                                ></path>
-                                                <path
-                                                    d="M7 7.6C5.4 9.9 4.6 12.2 4.8 14.6C6.4 15.8 8.1 16.7 10 17.2L10.9 15.7C10 15.5 9.2 15.2 8.4 14.7C8.6 14.5 8.7 14.4 8.8 14.2C10.8 15.1 13.2 15.1 15.2 14.2C15.3 14.4 15.4 14.5 15.6 14.7C14.8 15.2 14 15.5 13.1 15.7L14 17.2C15.9 16.7 17.6 15.8 19.2 14.6C19.5 11.8 18.7 9.5 17 7.6C15.9 7.1 14.8 6.8 13.6 6.6L13.2 7.4C12.4 7.2 11.6 7.2 10.8 7.4L10.4 6.6C9.2 6.8 8.1 7.1 7 7.6Z"
-                                                    stroke="rgba(125,211,255,0.8)"
-                                                    strokeWidth="1.2"
-                                                    strokeLinejoin="round"
-                                                ></path>
-                                                <circle
-                                                    cx="9.5"
-                                                    cy="12.2"
-                                                    r="1.2"
-                                                    fill="rgba(220,239,255,0.82)"
-                                                ></circle>
-                                                <circle
-                                                    cx="14.5"
-                                                    cy="12.2"
-                                                    r="1.2"
-                                                    fill="rgba(220,239,255,0.82)"
-                                                ></circle>
-                                            </svg>
-                                            Continue with Discord
-                                        </Link>
-                                    </div>
-                                    <div className="gw-auth-divider">
-                                        or continue with access fields
-                                    </div>
-                                    <label className="gw-auth-field">
-                                        <span className="gw-auth-label">
-                                            Email
-                                        </span>
-                                        <input
-                                            className="gw-auth-input"
-                                            type="email"
-                                            placeholder="maintainer@ghostwatch.dev"
-                                        />
-                                    </label>
-                                    <label className="gw-auth-field">
-                                        <span className="gw-auth-label">
-                                            Password
-                                        </span>
-                                        <input
-                                            className="gw-auth-input"
-                                            type="password"
-                                            placeholder="Enter demo access key"
-                                        />
-                                    </label>
-                                    <Link
-                                        to="/app"
-                                        className="gw-glass-button gw-button-primary"
-                                    >
-                                        Enter Demo Control Room
-                                    </Link>
-                                    <div className="gw-auth-legal">
-                                        Demo access keeps the flow moving today. Real GitHub and Discord auth hooks can replace these controls later without redesigning the page.
-                                    </div>
-                                </div>
-                            </section>
-                            <aside
-                                className="gw-auth-note-card gw-glass-panel gw-fade-up gw-stagger-4"
+                                <h2 className="gw-role-card-title">
+                                    Contributor
+                                </h2>
+                                <p className="gw-role-card-body">
+                                    See ranked gap suggestions after merges—tests, docs, and small implementation prompts—without the maintainer incident desk.
+                                </p>
+                            </Link>
+                            <Link
+                                to="/app/maintainer"
+                                className="gw-role-card gw-glass-panel gw-fade-up gw-stagger-5"
                             >
-                                <div className="gw-kicker">
-                                    Environment notes
+                                <div className="gw-role-card-kicker">
+                                    I own review & merge
                                 </div>
-                                <div className="gw-note-list">
-                                    <div className="gw-note-item">
-                                        <span>
-                                            Demo mode enabled
-                                        </span>
-                                        <strong>
-                                            {("On") if DEMO_MODE else "Off"}
-                                        </strong>
-                                    </div>
-                                    <div className="gw-note-item">
-                                        <span>
-                                            Live graph disabled
-                                        </span>
-                                        <strong>
-                                            Reserved
-                                        </strong>
-                                    </div>
-                                    <div className="gw-note-item">
-                                        <span>
-                                            Telemetry source
-                                        </span>
-                                        <strong>
-                                            Local placeholders
-                                        </strong>
-                                    </div>
-                                </div>
-                            </aside>
+                                <h2 className="gw-role-card-title">
+                                    Lead maintainer
+                                </h2>
+                                <p className="gw-role-card-body">
+                                    Open the control room for dependency incidents, walker status, escalation feeds, and the surfaces aligned with autonomous defense.
+                                </p>
+                            </Link>
                         </div>
                     </div>
                 </div>
             </div>;
     }
 
-    def AppPage() -> JsxElement {
+    def AppPage(mode: str) -> JsxElement {
+        isContributor = mode == "contributor";
         has activeSection: str = "Overview",
-            commandNote: str = "Demo telemetry synchronized. The graph canvas remains intentionally reserved for the next build.",
-            selectedEvent: str = "Suspicious manifest delta";
+            commandNote: str = (
+                "Gap-analysis suggestions are mocked locally until live graph and GapAnalysisWalker output are connected."
+                    if isContributor
+                    else "Demo telemetry synchronized. The graph canvas remains intentionally reserved for the next build."
+            ),
+            selectedEvent: str = (
+                "Document public walker exports"
+                    if isContributor
+                    else "Suspicious manifest delta"
+            );
+
+        sidebarItems = CONTRIBUTOR_SIDEBAR_ITEMS if isContributor else SIDEBAR_ITEMS;
+        summaryCards = CONTRIBUTOR_SUMMARY_CARDS if isContributor else SUMMARY_CARDS;
+        feedItems = CONTRIBUTOR_SUGGESTIONS if isContributor else INCIDENTS;
+        walkerItems = CONTRIBUTOR_WALKER_STATUS if isContributor else WALKER_STATUS;
+        attentionItems = CONTRIBUTOR_ATTENTION_ITEMS if isContributor else ATTENTION_ITEMS;
+        sessionNotesList = CONTRIBUTOR_SESSION_NOTES if isContributor else SESSION_NOTES;
 
         def setSection(label: str) -> None {
             activeSection = label;
-            commandNote = label + " is now centered in the command surface.";
+            place = "workspace" if isContributor else "command surface";
+            commandNote = label + " is now centered in your " + place + ".";
         }
 
         def runAnalysis() -> None {
-            commandNote = "Mock analysis queued across the highest-risk paths for " + activeSection + ".";
+            commandNote = (
+                "Refreshing suggestion rankings for " + activeSection + " (demo)."
+                    if isContributor
+                    else "Mock analysis queued across the highest-risk paths for " + activeSection + "."
+            );
         }
 
         def focusIncident(title: str) -> None {
             selectedEvent = title;
-            commandNote = "Focused incident: " + title + ".";
+            commandNote = (
+                "Focused suggestion: " + title + "."
+                    if isContributor
+                    else "Focused incident: " + title + "."
+            );
         }
 
-        panelTitle = "Repository Command Surface"
-            if activeSection == "Overview"
-            else activeSection;
+        panelTitle = (
+            "Contributor workspace"
+                if activeSection == "Overview" and isContributor
+                else "Repository Command Surface"
+                    if activeSection == "Overview"
+                    else activeSection
+        );
+
+        topDescription = (
+            "Gap-focused overview from post-merge analysis—lightweight cues for contributors rather than the maintainer defense desk."
+                if isContributor
+                else "Dark liquid-glass overview of the active demo telemetry around review flow, dependency alerts, and maintainer attention."
+        );
+
+        searchPlaceholder = (
+            "Search suggestions, docs, or file paths"
+                if isContributor
+                else "Search alerts, walkers, or file paths"
+        );
+
+        feedTitle = "Suggestion feed" if isContributor else "Threat Feed";
+        feedSubtitle = (
+            "Placeholder picks mirror future GapAnalysisWalker output: a short ranked list instead of maintainer escalations."
+                if isContributor
+                else "Recent placeholder incidents keep the shell realistic while live walker output is still being wired in."
+        );
+        feedPill = "Gap picks" if isContributor else "Live feed reserved";
+
+        graphKicker = "Contributor map" if isContributor else "Placeholder";
+        graphTitle = (
+            "Contribution graph reserved"
+                if isContributor
+                else "Graph Canvas Reserved"
+        );
+        graphBody = (
+            "When live, this panel would tie suggestions to repo topology. The canvas stays blank so we do not fake a graph."
+                if isContributor
+                else "Live topology playback will attach here in the next build. The shell deliberately keeps this area blank rather than pretending a graph already exists."
+        );
+        graphFoot = (
+            "Reserved for linking gap suggestions to nodes you touched in recent merges."
+                if isContributor
+                else "Reserved for live graph traversal, walker movement, and affected-node emphasis."
+        );
+
+        walkerRailTitle = "Walker & gap signals" if isContributor else "Walker Status";
+        walkerRailCopy = (
+            "Gap analysis and doc-linking walkers would surface here instead of the full incident stack."
+                if isContributor
+                else "Distinct specialist states stay visible instead of collapsing into one undifferentiated agent badge."
+        );
+
+        attentionTitle = "Your queue" if isContributor else "Attention Needed";
+        attentionCopy = (
+            "Contributor-sized tasks distilled from analysis—claimable slices, not org-wide escalations."
+                if isContributor
+                else "High-signal tasks stay short, legible, and ready for a future live handoff."
+        );
+
+        commandBannerLabel = "Workspace note" if isContributor else "Demo command note";
+        focusPillPrefix = "Focused item: " if isContributor else "Focused incident: ";
+
+        profileStrong = "Contributor view" if isContributor else "Repository Watch";
+        profileSpan = (
+            "Gap analysis preview"
+                if isContributor
+                else "Maintainer preview shell"
+        );
+        analysisButtonLabel = "Refresh suggestions" if isContributor else "Run Analysis";
 
         return
             <div className="gw-page">
@@ -3169,23 +3208,30 @@ cl {
                             <div className="gw-sidebar-nav">
                                 {[
                                     <SidebarNavButton key={item["icon"]} item={item} activeSection={activeSection} onPick={setSection}/>
-                                    for item in SIDEBAR_ITEMS
+                                    for item in sidebarItems
                                 ]}
                             </div>
                             <div className="gw-sidebar-footer">
                                 <div className="gw-demo-badge">
                                     Demo Mode
                                 </div>
+                                <Link
+                                    to="/start"
+                                    className="gw-role-back"
+                                    style={{"marginBottom": "12px"}}
+                                >
+                                    Switch role
+                                </Link>
                                 <div className="gw-profile-card">
                                     <div className="gw-avatar">
                                         GW
                                     </div>
                                     <div className="gw-profile-meta">
                                         <strong>
-                                            Repository Watch
+                                            {profileStrong}
                                         </strong>
                                         <span>
-                                            Maintainer preview shell
+                                            {profileSpan}
                                         </span>
                                     </div>
                                 </div>
@@ -3200,7 +3246,7 @@ cl {
                                         {panelTitle}
                                     </h1>
                                     <p>
-                                        Dark liquid-glass overview of the active demo telemetry around review flow, dependency alerts, and maintainer attention.
+                                        {topDescription}
                                     </p>
                                 </div>
                                 <div className="gw-topbar-actions">
@@ -3256,7 +3302,7 @@ cl {
                                         </svg>
                                         <input
                                             className="gw-search-input"
-                                            placeholder="Search alerts, walkers, or file paths"
+                                            placeholder={searchPlaceholder}
                                         />
                                     </div>
                                     <button
@@ -3293,7 +3339,7 @@ cl {
                                         className="gw-glass-button gw-button-primary"
                                         onClick={runAnalysis}
                                     >
-                                        Run Analysis
+                                        {analysisButtonLabel}
                                     </button>
                                 </div>
                             </header>
@@ -3302,20 +3348,20 @@ cl {
                             >
                                 <div>
                                     <strong>
-                                        Demo command note
+                                        {commandBannerLabel}
                                     </strong>
                                     <p>
                                         {commandNote}
                                     </p>
                                 </div>
                                 <div className="gw-pill">
-                                    Focused incident:{selectedEvent}
+                                    {focusPillPrefix}{selectedEvent}
                                 </div>
                             </section>
                             <div className="gw-main-grid">
                                 <main className="gw-main-column">
                                     <section className="gw-summary-grid">
-                                        {[<SummaryCard key={card["label"]} card={card}/> for card in SUMMARY_CARDS]}
+                                        {[<SummaryCard key={card["label"]} card={card}/> for card in summaryCards]}
                                     </section>
                                     <section
                                         className="gw-threat-panel gw-glass-panel gw-fade-up gw-stagger-4"
@@ -3323,20 +3369,20 @@ cl {
                                         <div className="gw-panel-head">
                                             <div>
                                                 <h2>
-                                                    Threat Feed
+                                                    {feedTitle}
                                                 </h2>
                                                 <p>
-                                                    Recent placeholder incidents keep the shell realistic while live walker output is still being wired in.
+                                                    {feedSubtitle}
                                                 </p>
                                             </div>
                                             <div className="gw-pill">
-                                                Live feed reserved
+                                                {feedPill}
                                             </div>
                                         </div>
                                         <div className="gw-feed-list">
                                             {[
                                                 <IncidentFeedButton key={incident["title"]} incident={incident} onPick={focusIncident}/>
-                                                for incident in INCIDENTS
+                                                for incident in feedItems
                                             ]}
                                         </div>
                                     </section>
@@ -3347,16 +3393,16 @@ cl {
                                         <GraphPlaceholderAccent/>
                                         <div className="gw-graph-copy">
                                             <span>
-                                                Placeholder
+                                                {graphKicker}
                                             </span>
                                             <h2>
-                                                Graph Canvas Reserved
+                                                {graphTitle}
                                             </h2>
                                             <p>
-                                                Live topology playback will attach here in the next build. The shell deliberately keeps this area blank rather than pretending a graph already exists.
+                                                {graphBody}
                                             </p>
                                             <div className="gw-graph-foot">
-                                                Reserved for live graph traversal, walker movement, and affected-node emphasis.
+                                                {graphFoot}
                                             </div>
                                         </div>
                                     </section>
@@ -3366,15 +3412,15 @@ cl {
                                         className="gw-right-panel gw-glass-panel gw-fade-up gw-stagger-3"
                                     >
                                         <h3>
-                                            Walker Status
+                                            {walkerRailTitle}
                                         </h3>
                                         <p>
-                                            Distinct specialist states stay visible instead of collapsing into one undifferentiated agent badge.
+                                            {walkerRailCopy}
                                         </p>
                                         <div className="gw-right-list">
                                             {[
                                                 <WalkerStatusItem key={status_item["name"]} status_item={status_item}/>
-                                                for status_item in WALKER_STATUS
+                                                for status_item in walkerItems
                                             ]}
                                         </div>
                                     </section>
@@ -3382,15 +3428,15 @@ cl {
                                         className="gw-right-panel gw-glass-panel gw-fade-up gw-stagger-4"
                                     >
                                         <h3>
-                                            Attention Needed
+                                            {attentionTitle}
                                         </h3>
                                         <p>
-                                            High-signal tasks stay short, legible, and ready for a future live handoff.
+                                            {attentionCopy}
                                         </p>
                                         <div className="gw-right-list">
                                             {[
                                                 <AttentionItem key={item["title"]} item={item}/>
-                                                for item in ATTENTION_ITEMS
+                                                for item in attentionItems
                                             ]}
                                         </div>
                                     </section>
@@ -3406,7 +3452,7 @@ cl {
                                         <div className="gw-session-notes">
                                             {[
                                                 <SessionNoteCard key={note} note={note}/>
-                                                for note in SESSION_NOTES
+                                                for note in sessionNotesList
                                             ]}
                                         </div>
                                     </section>
@@ -3427,8 +3473,23 @@ cl {
                     </style>
                     <Routes>
                         <Route path="/" element={<LandingPage/>}></Route>
-                        <Route path="/auth" element={<AuthPage/>}></Route>
-                        <Route path="/app" element={<AppPage/>}></Route>
+                        <Route
+                            path="/auth"
+                            element={<Navigate to="/start" replace={True}/>}
+                        ></Route>
+                        <Route path="/start" element={<RoleSelectPage/>}></Route>
+                        <Route
+                            path="/app/maintainer"
+                            element={<AppPage mode="maintainer"/>}
+                        ></Route>
+                        <Route
+                            path="/app/contributor"
+                            element={<AppPage mode="contributor"/>}
+                        ></Route>
+                        <Route
+                            path="/app"
+                            element={<Navigate to="/start" replace={True}/>}
+                        ></Route>
                         <Route path="*" element={<Navigate to="/"/>}></Route>
                     </Routes>
                 </div>
