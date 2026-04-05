@@ -234,3 +234,19 @@ cl glob:pub CONTRIBUTOR_ATTENTION_ITEMS: list[dict[str, str]] = [
 
 cl glob:pub DEMO_PR_URL: str = "https://github.com/Aarosunn/ghostwatch-test-target/pull/2";
 cl glob:pub DEMO_REPO_URL: str = "https://github.com/Aarosunn/ghostwatch-test-target";
+
+cl glob:pub CLAUDE_JASECI_CONTEXT_PARAS: list[str] = [
+    (
+        "The official Jaseci monorepo hosts the Jac stack: jaclang (Jac to Python bytecode, JavaScript, and native code), "
+        "byllm for LLM integration, jac-client for full-stack apps with the npm/Vite ecosystem, jac-scale for deployment "
+        "(FastAPI, Redis, MongoDB, Kubernetes), jac-super, and jac-mcp. The convenience bundle installs with pip install jaseci."
+    ),
+    (
+        "Jac emphasizes AI-native Meaning Typed Programming, building backend and frontend in one language, graph-native domain "
+        "modeling with walkers, and cloud-style serving via jac start (with optional scaling flags). Documentation, tutorials, "
+        "and contribution guidelines live in the same repository."
+    ),
+    (
+        "GhostWatch scopes this demo to jaseci-labs/jaseci; GraphStateWalker streams open issues (capped at 100) and a TTL-cached Anthropic digest for maintainer triage."
+    )
+];

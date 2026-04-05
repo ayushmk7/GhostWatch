@@ -1,26 +1,11 @@
 # main.jac — GhostWatch entry point.
 # jac start main.jac exposes all walker:pub endpoints automatically.
 
-import from graph.nodes { FileNode, PRAnalysisNode }
-import from graph.edges { ImportEdge, BlastEdge }
-import from objects.verdict { VerdictObject, SecurityFinding, CompatibilityIssue }
-import from graph.builder { GraphBuilderWalker }
+import from ghostwatch_walker_imports { ghostwatch_walkers_registered }
 import from walkers.static.orchestrator { OrchestratorWalker }
-import from walkers.static.security { SecurityAuditorWalker }
-import from walkers.static.compatibility { CompatibilityCheckerWalker }
-import from walkers.static.blast_radius { BlastRadiusMapperWalker }
-import from walkers.static.graph_state { GraphStateWalker }
-import from walkers.static.pr_comment { PRCommentWriterWalker }
-import from integrations.github { validate_webhook_signature }
-import from integrations.discord { notify_discord }
 import from os { environ }
-import from walkers.ghostwatch.github_system2_webhook { GitHubSystem2WebhookWalker }
-import from walkers.ghostwatch.system2_hooks { System2PushTriggerWalker, System2MergeTriggerWalker, System2EscalationTickWalker }
-import from walkers.ghostwatch.dep_diff { DependencyDiffWalker }
-import from walkers.ghostwatch.sandbox { SandboxExecutorWalker }
-import from walkers.ghostwatch.fix_gen { FixGenerationWalker }
-import from walkers.ghostwatch.pr_creator { GhostwatchPRCreatorWalker }
-import from walkers.ghostwatch.gap_analysis { GapAnalysisWalker }
+import from integrations.github { validate_webhook_signature }
+import from dotenv { load_dotenv }
 
 walker:pub GitHubWebhookWalker {
     has event_type: str;
@@ -55,6 +40,8 @@ walker:pub GitHubWebhookWalker {
 }
 
 with entry {
+    _ = load_dotenv();
+    _wl = ghostwatch_walkers_registered();
     print("GhostWatch System 1 ready.");
     print("Step 1: POST /walker/rebuild-graph to build the codebase graph.");
     print("Step 2: Configure GitHub webhook -> POST /walker/git-hub-webhook-walker");
