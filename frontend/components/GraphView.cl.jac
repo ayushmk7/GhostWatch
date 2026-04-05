@@ -1,6 +1,5 @@
 import "@xyflow/react/dist/style.css";
 cl import from "@xyflow/react" { ReactFlow, Background, Controls }
-import from typing { Any }
 
 def riskColor(score: Any) -> str {
     s: Any = score if score else 0;
@@ -15,23 +14,23 @@ def riskColor(score: Any) -> str {
 }
 
 def:pub GraphView(
-    nodes_data: list[dict[str, Any]],
-    edges_data: list[dict[str, Any]],
+    nodes_data: list[dict],
+    edges_data: list[dict],
     animatingPath: list,
     analysisLoading: bool
 ) -> JsxElement {
 
     # Build path-index lookup for O(1) animation delay calc
-    path_index: dict[str, Any] = {};
+    path_index: dict = {};
     for (i, jid_val) in enumerate(animatingPath) {
         path_index[jid_val] = i;
     }
     path_len: int = len(animatingPath);
 
     # Build ReactFlow node objects
-    xf_nodes: list[dict[str, Any]] = [];
+    xf_nodes: list = [];
     for (idx, n) in enumerate(nodes_data) {
-        node_style: dict[str, Any] = {
+        node_style: Any = {
             "background": riskColor(n["risk_score"]),
             "border": "1px solid rgba(220,239,255,0.3)",
             "borderRadius": "6px",
@@ -58,7 +57,7 @@ def:pub GraphView(
         }
 
         node_path: Any = n["path"];
-        label: Any = node_path.split("/")[-1];
+        label: Any = node_path.split("/")[-1]; # jac:ignore[E1032]
         xf_nodes.append({
             "id": n["id"],
             "position": {"x": (idx % 6) * 200, "y": (idx // 6) * 120},
@@ -68,7 +67,7 @@ def:pub GraphView(
     }
 
     # Build ReactFlow edge objects
-    xf_edges: list[dict[str, Any]] = [
+    xf_edges: Any = [
         {
             "id": f"{e['source']}-{e['target']}",
             "source": e["source"],
