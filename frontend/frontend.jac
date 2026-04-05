@@ -1,22 +1,3 @@
-# API walker registration (this file is also the client root via `main.jac` symlink).
-
-import from graph.builder { GraphBuilderWalker }
-import from walkers.static.graph_state { GraphStateWalker }
-import from walkers.static.pr_comment { PRCommentWriterWalker }
-import from walkers.ghostwatch.dep_diff { DependencyDiffWalker }
-import from walkers.ghostwatch.sandbox { SandboxExecutorWalker }
-import from walkers.ghostwatch.fix_gen { FixGenerationWalker }
-import from walkers.ghostwatch.pr_creator { GhostwatchPRCreatorWalker }
-import from walkers.ghostwatch.gap_analysis { GapAnalysisWalker }
-import from walkers.ghostwatch.system2_hooks {
-    System2PushTriggerWalker,
-    System2MergeTriggerWalker,
-    System2EscalationTickWalker
-}
-import from walkers.ghostwatch.github_system2_webhook { GitHubSystem2WebhookWalker }
-
-with entry { }
-
 cl import from "@jac/runtime" { Router, Routes, Route, Link, Navigate }
 
 cl glob DEMO_MODE: bool = True;
