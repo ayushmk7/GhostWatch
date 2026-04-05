@@ -1,0 +1,39 @@
+cl import from "@jac/runtime" { Router, Routes, Route, Navigate }
+cl import from .theme { APP_STYLES }
+cl import from .pages.index { IndexPage }
+cl import from .pages.start { StartPage }
+cl import from .components.AppShell { AppShell }
+
+cl {
+    def:pub app() -> JsxElement {
+        return
+            <Router>
+                <div className="gw-root">
+                    <style>
+                        {APP_STYLES}
+                    </style>
+                    <Routes>
+                        <Route path="/" element={<IndexPage/>}></Route>
+                        <Route
+                            path="/auth"
+                            element={<Navigate to="/start" replace={True}/>}
+                        ></Route>
+                        <Route path="/start" element={<StartPage/>}></Route>
+                        <Route
+                            path="/app/maintainer"
+                            element={<AppShell mode="maintainer"/>}
+                        ></Route>
+                        <Route
+                            path="/app/contributor"
+                            element={<AppShell mode="contributor"/>}
+                        ></Route>
+                        <Route
+                            path="/app"
+                            element={<Navigate to="/start" replace={True}/>}
+                        ></Route>
+                        <Route path="*" element={<Navigate to="/" />}></Route>
+                    </Routes>
+                </div>
+            </Router>;
+    }
+}

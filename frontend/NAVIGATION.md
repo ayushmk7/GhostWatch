@@ -11,12 +11,12 @@ jac build
 Then from `.jac/client` run Vite dev (see repo `README` or use `npx vite dev --config configs/vite.config.js`), or with the full stack:
 
 ```bash
-jac start frontend/frontend.jac --dev
+jac start frontend/main.jac --dev
 ```
 
-Then open the URL your toolchain prints (e.g. **http://localhost:8000/cl/app** for `jac start`).
+Then open the URL the CLI prints (e.g. **Vite: http://localhost:8000/** → app under `/cl/app` per [serve] config).
 
-> `jac start --dev` alone looks for `main.jac`. Always pass the file explicitly if you use `frontend/frontend.jac`.
+> `jac build` uses [jac.toml](../jac.toml) `entry-point = "frontend/main.jac"`. `jac start` with no filename still looks for `./main.jac` in the repo root, so pass `frontend/main.jac` explicitly. File-based `pages/` must live next to that entry file.
 
 ---
 
@@ -105,7 +105,7 @@ Any other unrecognised path redirects back to `/` via `<Navigate to="/">`.
 ## Local Development Notes
 
 - The app runs in **demo mode only** (`DEMO_MODE = True`)
-- Data is hardcoded in centralized constants at the top of `frontend/frontend.jac`
+- Data is hardcoded in [frontend/mock_data.cl.jac](mock_data.cl.jac)
 - The graph canvas is intentionally blank — a live topology playback area reserved for the next build
 - No real auth or backend in this slice; `./docs/system2design.md` describes how the backend will feed incidents and gap analysis later
 
@@ -115,6 +115,10 @@ Any other unrecognised path redirects back to `/` via `<Navigate to="/">`.
 
 | File | Purpose |
 |---|---|
-| `frontend/frontend.jac` | Entire frontend — CSS tokens, mock data, all components, router |
-| `frontend/init.jac` | Local entry stub (not used by root `jac.toml`) |
-| `jac.toml` | Project config — entry point `main.jac`, client plugin, serve settings |
+| `frontend/main.jac` | Client entry — `def:pub app()` (file-based `pages/` supply routes) |
+| `frontend/pages/` | File-based routes — `layout.jac`, `index.jac`, `start.jac`, `auth.jac`, `app/*`, `[...notFound].jac` |
+| `frontend/components/` | Reusable `.cl.jac` UI — shell, cards, glyphs, helpers |
+| `frontend/theme.cl.jac` | Global `APP_STYLES` CSS string |
+| `frontend/mock_data.cl.jac` | Demo constants (`DEMO_MODE`, metrics, feeds, cards) |
+| `frontend/init.jac` | Local package stub |
+| `jac.toml` | Project config — entry point `frontend/main.jac`, client plugin, serve settings |

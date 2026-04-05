@@ -2,7 +2,7 @@
 name = "ghostwatch"
 version = "1.0.0"
 description = "GhostWatch autonomous code defense frontend"
-entry-point = "main.jac"
+entry-point = "frontend/main.jac"
 
 [dependencies]
 PyGithub = "^2.0.0"
