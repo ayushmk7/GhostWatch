@@ -54,19 +54,27 @@ def:pub AppShell(mode: str) -> JsxElement {
     has activeSection: str = "Overview",
         repoDisplay: str = parse_repo_slug(DEMO_REPO_URL),
         graphState: dict | None = None,
+        graphFetchError: str = "",
         analysisLoading: bool = False,
         analysisResult: dict | None = None,
         animatingPath: list = [];
 
     async def fetchGraphState() -> None {
-        res: Any = await doFetch(
-            "/walker/GraphStateProxy",
-            {"method": "POST", "headers": {"Content-Type": "application/json"}, "body": "{}"}
-        );
-        data: Any = await res.json(); # jac:ignore[E1032]
-        reports: Any = (data["data"] or {})["reports"] or []; # jac:ignore[E1001]
-        if len(reports) > 0 { # jac:ignore[E1053]
-            graphState = reports[0]; # jac:ignore[E1001]
+        try {
+            res: Any = await doFetch(
+                "/walker/GraphStateProxy",
+                {"method": "POST", "headers": {"Content-Type": "application/json"}, "body": "{}"}
+            );
+            data: Any = await res.json(); # jac:ignore[E1032]
+            reports: Any = (data["data"] or {})["reports"] or []; # jac:ignore[E1001]
+            if len(reports) > 0 { # jac:ignore[E1053]
+                graphState = reports[0]; # jac:ignore[E1001]
+                graphFetchError = ""; # jac:ignore[E1001]
+            } else {
+                graphFetchError = "proxy returned 0 reports"; # jac:ignore[E1001]
+            }
+        } except Exception as e { # jac:ignore[W2052]
+            graphFetchError = str(e); # jac:ignore[E1001]
         }
     }
 
@@ -1200,6 +1208,10 @@ def:pub AppShell(mode: str) -> JsxElement {
                                                     <p>
                                                         {graphBody}
                                                     </p>
+                                                    {graphFetchError and
+                                                        <p style={{"color": "rgba(239,68,68,0.8)", "fontSize": "11px", "fontFamily": "monospace"}}>
+                                                            {"fetch error: " + graphFetchError}
+                                                        </p>}
                                                     <div className="gw-graph-foot">
                                                         {graphFoot}
                                                     </div>
