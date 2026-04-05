@@ -1,5 +1,6 @@
 # Local virtual environment
 myenv/
+.venv-jac-mcp/
 .env
 
 # Python cache/artifacts
