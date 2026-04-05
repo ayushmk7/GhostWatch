@@ -3,7 +3,8 @@
 import from graph.nodes { FileNode }
 
 walker:pub GraphBuilderWalker {
-    has repo_name: str = "jaseci-labs/jaseci";
+    has repo_name: str = "";
+    has repo_root: str = ".";
     has branch: str = "main";
     has force: bool = False;
     has file_count: int = 0;
@@ -15,4 +16,7 @@ walker:pub GraphBuilderWalker {
 
     def _should_skip(path: str) -> bool;
     def _detect_language(filename: str) -> str;
+    def _read_local_file(abs_path: str) -> str;
+    def _import_targets(path: str, language: str, content: str) -> list[str];
+    def _jac_module_to_paths(source_path: str, module_path: str) -> list[str];
 }

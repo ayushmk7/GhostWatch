@@ -1,10 +1,15 @@
 import requests;
 import from typing { Any }
+import from os { environ }
+
+def backend_base_url() -> str {
+    return str(environ.get("GHOSTWATCH_BACKEND_URL", "http://localhost:8080")).rstrip("/");
+}
 
 walker:pub GraphStateProxy {
     can fetch with Root entry {
         resp: Any = requests.post(
-            "http://localhost:8080/walker/GraphStateWalker",
+            backend_base_url() + "/walker/GraphStateWalker",
             json={"latest_pr": None, "latest_incident": None, "latest_gap": None}
         );
         body: Any = resp.json();
@@ -20,7 +25,7 @@ walker:pub OrchestratorProxy {
 
     can run with Root entry {
         resp: Any = requests.post(
-            "http://localhost:8080/walker/OrchestratorWalker",
+            backend_base_url() + "/walker/OrchestratorWalker",
             json={"pr_url": self.pr_url}
         );
         body: Any = resp.json();

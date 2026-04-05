@@ -116,8 +116,8 @@ test "HMAC validation rejects wrong signature" {
 }
 
 test "ghostwatch demo repo url is fixed to jaseci" {
-    assert ghostwatch_demo_repo_url() == "https://github.com/jaseci-labs/jaseci";
-    assert ghostwatch_demo_repo_slug("https://github.com/jaseci-labs/jaseci") == "jaseci-labs/jaseci";
+    assert ghostwatch_demo_repo_url() == "https://github.com/ayushmk7/GhostWatch";
+    assert ghostwatch_demo_repo_slug("https://github.com/ayushmk7/GhostWatch") == "ayushmk7/GhostWatch";
 }
 
 test "issues_fingerprint_from_list is stable for identical input" {
