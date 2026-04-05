@@ -2,7 +2,7 @@
 name = "ghostwatch"
 version = "1.0.0"
 description = "GhostWatch autonomous code defense"
-entry = "main.jac"
+entry-point = "main.jac"
 
 [dependencies]
 PyGithub = "^2.0.0"
@@ -17,7 +17,6 @@ react-hook-form = "^7.71.0"
 zod = "^4.3.6"
 "@hookform/resolvers" = "^5.2.2"
 "@xyflow/react" = "latest"
-jac-client-node = "1.0.7"
 
 [dependencies.npm.dev]
 vite = "^6.4.1"
@@ -25,7 +24,6 @@ vite = "^6.4.1"
 typescript = "^5.3.3"
 "@types/react" = "^18.2.0"
 "@types/react-dom" = "^18.2.0"
-"@jac-client/dev-deps" = "2.0.0"
 
 [dev-dependencies]
 watchdog = ">=3.0.0"

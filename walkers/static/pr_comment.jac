@@ -6,7 +6,7 @@
 walker:pub PRCommentWriterWalker {
     has pr_url: str;
     has verdict_id: str;
-    has reports: list = [];
+    has reports: list[dict] = [];
 
     can post_review with root() entry;
 
