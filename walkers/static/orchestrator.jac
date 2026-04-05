@@ -19,6 +19,8 @@ walker:pub OrchestratorWalker {
     def _run_blast(start_node: FileNode, changed_paths: list[str]) -> dict[str, Any];
     def _get_subgraph_root() -> FileNode | None;
     def _build_allowed_nodes(changed_files: list[str]) -> set[str];
+    def _derive_risk_label(verdict: dict[str, Any]) -> str;
+    def _discord_summary(pr_url: str, verdict: dict[str, Any]) -> str;
 
     def _merge_findings(security: Any, compat: Any, blast: Any, pr_url: str) -> VerdictObject by llm;
 }

@@ -182,9 +182,11 @@ def:pub AppShell(mode: str) -> JsxElement {
     sidebarItems = CONTRIBUTOR_SIDEBAR_ITEMS if isContributor else SIDEBAR_ITEMS;
 
     live_nodes: list = graphState["nodes"] if graphState else [];
+    live_edges: list = graphState["edges"] if graphState else [];
     high_risk_count: int = len([n for n in live_nodes if int(n["risk_score"] or 0) >= 14]);
     has_graph_live: bool = graphState["has_graph"] if graphState else False;
     latest_pr_live: dict | None = graphState["latest_analysis"] if graphState else None;
+    latest_verdict_live: dict | None = latest_pr_live["verdict"] if latest_pr_live and latest_pr_live["verdict"] else None;
     latest_gap_live: dict | None = graphState["latest_gap_analysis"] if graphState else None;
     latest_incident_live: dict | None = graphState["latest_incident"] if graphState else None;
     github_issues_live: list = graphState["github_issues"] if graphState else [];
@@ -249,33 +251,49 @@ def:pub AppShell(mode: str) -> JsxElement {
     if test_gap_count == 0 {
         test_gap_count = len(heuristic_test_rows);
     }
+    security_findings_count: int = safeLen(latest_verdict_live["security_findings"]) if latest_verdict_live else 0;
+    compatibility_findings_count: int = safeLen(latest_verdict_live["compatibility_issues"]) if latest_verdict_live else 0;
+    latest_threat_count: int = security_findings_count + compatibility_findings_count;
+    if latest_threat_count == 0 {
+        latest_threat_count = high_risk_count;
+    }
+    latest_risk_label: str = str_or(latest_verdict_live["overall_risk"], "None yet") if latest_verdict_live else "None yet";
+    graph_edge_count: int = safeLen(live_edges);
 
     contributor_summary_cards: list = [
         {
-            "label": "Open issues",
-            "value": str(safeLen(github_issues_live)) if safeLen(github_issues_live) > 0 else "—",
-            "delta": "repo backlog",
+            "label": "Files scanned",
+            "value": str(len(live_nodes)) if graphState else "—",
+            "delta": "current graph",
             "tone": "frost",
             "spark": "6,32 42,22 80,18 122,24 160,12 198,16 236,14 274,10"
         },
         {
-            "label": "Suggested tasks",
-            "value": str(safeLen(gap_suggestions_live)) if safeLen(gap_suggestions_live) > 0 else "—",
-            "delta": "from gap analysis",
+            "label": "Links mapped",
+            "value": str(graph_edge_count) if graphState else "—",
+            "delta": "import edges",
             "tone": "cyan",
             "spark": "6,30 42,28 80,20 122,26 160,16 198,14 236,12 274,11"
         },
         {
-            "label": "Docs gaps",
-            "value": str(doc_gap_count) if latest_gap_live else "—",
-            "delta": "current snapshot",
+            "label": "Threats flagged",
+            "value": str(latest_threat_count) if graphState else "—",
+            "delta": (
+                str(security_findings_count) + " security · " + str(compatibility_findings_count) + " compat"
+                    if latest_verdict_live
+                    else str(high_risk_count) + " high-risk files"
+            ),
             "tone": "aqua",
             "spark": "6,26 42,22 80,24 122,18 160,20 198,11 236,14 274,9"
         },
         {
-            "label": "Tests gaps",
-            "value": str(test_gap_count) if latest_gap_live else "—",
-            "delta": "current snapshot",
+            "label": "Latest PR risk",
+            "value": latest_risk_label,
+            "delta": (
+                parse_pr_ref(str_or(latest_pr_live["pr_url"], ""))
+                    if latest_pr_live
+                    else ("graph ready" if has_graph_live else "waiting on graph")
+            ),
             "tone": "amber",
             "spark": "6,34 42,24 80,22 122,18 160,20 198,13 236,10 274,12"
         }
@@ -290,26 +308,31 @@ def:pub AppShell(mode: str) -> JsxElement {
             "spark": "6,30 42,18 80,20 122,10 160,16 198,8 236,14 274,9"
         },
         {
-            "label": "High-risk files",
-            "value": str(high_risk_count) if graphState else "—",
-            "delta": "above threshold",
+            "label": "Dependency links",
+            "value": str(graph_edge_count) if graphState else "—",
+            "delta": "mapped edges",
             "tone": "cyan",
             "spark": "6,34 42,32 80,24 122,28 160,14 198,18 236,12 274,10"
         },
         {
-            "label": "Latest PR risk",
-            "value": (
-                (latest_pr_live["verdict"]["overall_risk"] or "?")
-                if latest_pr_live else "None yet"
+            "label": "Threats flagged",
+            "value": str(latest_threat_count) if graphState else "—",
+            "delta": (
+                str(security_findings_count) + " security · " + str(compatibility_findings_count) + " compat"
+                    if latest_verdict_live
+                    else str(high_risk_count) + " high-risk files"
             ),
-            "delta": "analyzed",
             "tone": "aqua",
             "spark": "6,28 42,20 80,22 122,14 160,18 198,12 236,16 274,11"
         },
         {
-            "label": "Graph status",
-            "value": "Ready" if has_graph_live else "Building...",
-            "delta": "system 1",
+            "label": "Latest PR risk",
+            "value": latest_risk_label,
+            "delta": (
+                parse_pr_ref(str_or(latest_pr_live["pr_url"], ""))
+                    if latest_pr_live
+                    else ("graph ready" if has_graph_live else "waiting on graph")
+            ),
             "tone": "amber",
             "spark": "6,36 42,26 80,24 122,20 160,18 198,15 236,11 274,10"
         }

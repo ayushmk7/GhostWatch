@@ -21,7 +21,7 @@ impl discord_post_content(content: str) -> None {
     }
 }
 
-impl notify_discord(pr_number: str, risk: str, report_link: str) -> None {
+impl notify_discord(pr_number: str, risk: str, summary: str) -> None {
     risk_emoji = {
         "CRITICAL": "🔴",
         "HIGH": "🟠",
@@ -31,7 +31,7 @@ impl notify_discord(pr_number: str, risk: str, report_link: str) -> None {
     };
     emoji = risk_emoji.get(risk.upper(), "⚪");
     discord_post_content(
-        f"{emoji} **PR #{pr_number} analyzed — Risk: {risk.upper()}**\nView report → {report_link}"
+        f"{emoji} **PR #{pr_number} analyzed — Risk: {risk.upper()}**\n{summary}"
     );
 }
 
