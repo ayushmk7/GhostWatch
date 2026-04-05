@@ -68,6 +68,35 @@ def:pub AppShell(mode: str) -> JsxElement {
         }
     }
 
+    async def runAnalysis() -> None {
+        analysisLoading = True;
+        analysisResult = None;
+        animatingPath = [];
+
+        body_str: str = f'{{"pr_url": "{DEMO_PR_URL}"}}';
+        res: Any = await doFetch(
+            "/walker/OrchestratorProxy",
+            {
+                "method": "POST",
+                "headers": {"Content-Type": "application/json"},
+                "body": body_str
+            }
+        );
+        data: Any = await res.json();
+        reports: Any = data.get("reports", []);
+
+        if len(reports) > 0 {
+            result: Any = reports[0];
+            analysisResult = result;
+            paths: Any = result.get("traversal_paths", {});
+            blast_path: Any = paths.get("blast_radius", []);
+            animatingPath = blast_path;
+        }
+
+        analysisLoading = False;
+        await fetchGraphState();
+    }
+
     async can with entry {
         await fetchGraphState();
     }
@@ -217,7 +246,7 @@ def:pub AppShell(mode: str) -> JsxElement {
                         + ": pull requests under watch, walker signals, and maintainer-sized attention items."
                 );
                 searchPlaceholder = "Search alerts, walkers, or paths in " + repoDisplay;
-                analysisButtonLabel = "Refresh desk";
+                analysisButtonLabel = "Run Analysis";
             } else {
                 if activeSection == "PR Review" {
                     panelTitle = "PR Review · " + repoDisplay;
@@ -484,9 +513,10 @@ def:pub AppShell(mode: str) -> JsxElement {
                                     <button
                                         type="button"
                                         className="gw-glass-button gw-button-primary"
-                                        onClick={lambda -> None { }}
+                                        onClick={lambda -> None { runAnalysis(); }}
+                                        disabled={analysisLoading}
                                     >
-                                        {analysisButtonLabel}
+                                        {analysisButtonLabel if not analysisLoading else "Analyzing..."}
                                     </button>
                                 </div>
                             </header>}
@@ -1144,6 +1174,51 @@ def:pub AppShell(mode: str) -> JsxElement {
                                     <section className="gw-summary-grid">
                                         {[<SummaryCard key={card["label"]} card={card}/> for card in summaryCards]}
                                     </section>
+                                    {analysisResult and
+                                        <section
+                                            className="gw-glass-panel gw-fade-up"
+                                            style={{
+                                                "padding": "20px 24px",
+                                                "marginBottom": "16px",
+                                                "borderLeft": "3px solid " + (
+                                                    "rgba(239,68,68,0.8)"
+                                                    if analysisResult.get("overall_risk", "") in ["critical", "high"]
+                                                    else "rgba(251,191,36,0.8)"
+                                                    if analysisResult.get("overall_risk", "") == "medium"
+                                                    else "rgba(125,211,255,0.6)"
+                                                )
+                                            }}
+                                        >
+                                            <div style={{"display": "flex", "alignItems": "center", "gap": "12px", "marginBottom": "10px"}}>
+                                                <span style={{
+                                                    "background": (
+                                                        "rgba(239,68,68,0.25)"
+                                                        if analysisResult.get("overall_risk", "") in ["critical", "high"]
+                                                        else "rgba(251,191,36,0.25)"
+                                                        if analysisResult.get("overall_risk", "") == "medium"
+                                                        else "rgba(125,211,255,0.15)"
+                                                    ),
+                                                    "color": "rgba(220,239,255,0.9)",
+                                                    "padding": "3px 10px",
+                                                    "borderRadius": "20px",
+                                                    "fontSize": "11px",
+                                                    "fontWeight": "700",
+                                                    "textTransform": "uppercase",
+                                                    "letterSpacing": "0.05em"
+                                                }}>
+                                                    {analysisResult.get("overall_risk", "unknown")}
+                                                </span>
+                                                <span style={{"color": "rgba(220,239,255,0.5)", "fontSize": "12px"}}>
+                                                    {str(len(analysisResult.get("security_findings", []))) + " security · " + str(len(analysisResult.get("compatibility_issues", []))) + " compat"}
+                                                </span>
+                                            </div>
+                                            <p style={{"color": "rgba(220,239,255,0.82)", "fontSize": "13px", "marginBottom": "6px", "lineHeight": "1.5"}}>
+                                                {analysisResult.get("blast_radius_summary", "")}
+                                            </p>
+                                            <p style={{"color": "rgba(125,211,255,0.82)", "fontSize": "12px", "fontStyle": "italic"}}>
+                                                {analysisResult.get("recommendation", "")}
+                                            </p>
+                                        </section>}
                                     <section
                                         className="gw-graph-panel gw-glass-panel gw-fade-up gw-stagger-5"
                                     >
