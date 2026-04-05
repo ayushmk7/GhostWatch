@@ -1,5 +1,1 @@
-import from frontend { }
-
-with entry {
-    pass;
-}
+with entry { }

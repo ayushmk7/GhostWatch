@@ -6,8 +6,22 @@ import from walkers.ghostwatch.fix_gen { FixGenerationWalker }
 import from time { time }
 
 impl SandboxExecutorWalker._interpret_behavior(raw_evidence: dict) -> dict {
+    if raw_evidence.get("credential_path_access") or raw_evidence.get("self_delete_indicators") {
+        return {
+            "summary": "Sandbox logs matched credential-path or self-delete heuristics",
+            "verdict": "malicious",
+            "iocs": []
+        };
+    }
+    if raw_evidence.get("install_ok", False) {
+        return {
+            "summary": "Install completed without structured hostile signals in the local sandbox",
+            "verdict": "cleared",
+            "iocs": []
+        };
+    }
     return {
-        "summary": "Deterministic stub (configure LLM to replace)",
+        "summary": "Install failed or sandbox error — human review recommended",
         "verdict": "needs_human_review",
         "iocs": []
     };
@@ -33,8 +47,16 @@ impl SandboxExecutorWalker.run with root() entry {
         } except Exception {
             bt = {"summary": "LLM interpretation failed", "verdict": "needs_human_review", "iocs": []};
         }
+        if str(target.risk_level).lower() == "critical" {
+            bt = {
+                "summary": "Critical static risk — automated remediation path",
+                "verdict": "malicious",
+                "iocs": []
+            };
+        }
         target.behavioral_trace = bt;
-        v = str(bt.get("verdict", "needs_human_review")).lower();
+        v = str(bt["verdict"]) if isinstance(bt, dict) and "verdict" in bt else "needs_human_review";
+        v = str(v).lower();
         if v == "malicious" {
             target.status = "malicious";
         } elif v == "cleared" {

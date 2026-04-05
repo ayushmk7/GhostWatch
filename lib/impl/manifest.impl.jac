@@ -313,6 +313,7 @@ impl fix_invert_manifest(
                 parent_lines.append(line);
             }
         }
+        dep_norm = normalize_package_name(dependency_name);
         cur_lines = [];
         for line in current_content.splitlines() {
             stripped = line.strip();
@@ -321,11 +322,11 @@ impl fix_invert_manifest(
                 continue;
             }
             pkg = requirements_line_pkg(stripped);
-            if pkg == dependency_name {
+            if normalize_package_name(pkg) == dep_norm {
                 repl = None;
                 for pl in parent_lines {
                     pp = requirements_line_pkg(pl);
-                    if pp == dependency_name {
+                    if normalize_package_name(pp) == dep_norm {
                         repl = pl;
                         break;
                     }
@@ -343,6 +344,28 @@ impl fix_invert_manifest(
         return parent_content;
     }
     return current_content;
+}
+
+impl impl_likely_has_conventional_test(impl_path: str, test_file_paths: set[str]) -> bool {
+    parts = str(impl_path).split("/");
+    base = parts[-1] if parts else str(impl_path);
+    if not base or "." not in base {
+        return False;
+    }
+    stem_ext = base.rsplit(".", 1);
+    if len(stem_ext) < 2 {
+        return False;
+    }
+    stem = stem_ext[0];
+    ext = stem_ext[1];
+    expected = "test_" + stem + "." + ext;
+    for tp in test_file_paths {
+        tps = str(tp);
+        if tps.endswith("/" + expected) or tps == expected {
+            return True;
+        }
+    }
+    return False;
 }
 
 impl rank_gap_candidates(
@@ -365,7 +388,7 @@ impl rank_gap_candidates(
         if in_core {
             score += 3;
         }
-        if fp not in paths_with_tests {
+        if not impl_likely_has_conventional_test(fp, paths_with_tests) {
             score += 5;
         }
         if low.endswith(".jac") and fp not in paths_with_docs {

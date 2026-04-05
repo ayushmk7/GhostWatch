@@ -46,6 +46,8 @@ def fix_invert_manifest(
     dependency_name: str
 ) -> str;
 
+def impl_likely_has_conventional_test(impl_path: str, test_file_paths: set[str]) -> bool;
+
 def rank_gap_candidates(
     file_paths: list[str],
     paths_with_tests: set[str],

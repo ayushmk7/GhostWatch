@@ -52,7 +52,7 @@ impl GitHubSystem2WebhookWalker.run with root() entry {
                 parent_sha=parent_sha,
                 manifest_paths=manifests
             );
-            report {"status": "dependency_diff_dispatched", "manifests": len(manifests)};
+            report {"status": "dependency_diff_dispatched", "manifest_count": len(manifests)};
             return;
         }
         report {"status": "push_no_manifest"};

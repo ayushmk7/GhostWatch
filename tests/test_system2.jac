@@ -11,8 +11,10 @@ import from lib.manifest {
     classify_dependency_risks,
     fix_invert_manifest,
     rank_gap_candidates,
-    package_alias_map
+    package_alias_map,
+    impl_likely_has_conventional_test
 }
+import from lib.sandbox_exec { pip_requirements_file_line }
 
 test "normalize_package_name collapses separators" {
     assert normalize_package_name("Foo_Bar.baz") == "foo-bar-baz";
@@ -45,6 +47,19 @@ test "classify_dependency_risks flags phantom import" {
     assert len(risks) > 0;
 }
 
+test "pip_requirements_file_line keeps full requirements.txt line" {
+    assert pip_requirements_file_line("requests", "requests>=2.0") == "requests>=2.0";
+    assert pip_requirements_file_line("foo", "") == "foo";
+}
+
+test "fix_invert_manifest requirements matches names case-insensitively" {
+    par = "requests==1\n";
+    cur = "Requests==9\n";
+    out = fix_invert_manifest("requirements.txt", par, cur, "requests");
+    assert "==1" in out;
+    assert "==9" not in out;
+}
+
 test "fix_invert_manifest removes added npm dep" {
     par = '{"dependencies":{"a":"1"}}';
     cur = '{"dependencies":{"a":"1","b":"9"}}';
@@ -56,6 +71,25 @@ test "rank_gap_candidates prefers untested core files" {
     files = ["walkers/foo.jac", "tests/test_foo.jac", "README.md"];
     ranked = rank_gap_candidates(files, set(), set(), ["walkers/"]);
     assert len(ranked) > 0;
+}
+
+test "impl_likely_has_conventional_test matches test_<stem> files" {
+    assert impl_likely_has_conventional_test(
+        "walkers/foo.jac",
+        {"tests/test_foo.jac"}
+    );
+    assert not impl_likely_has_conventional_test(
+        "walkers/bar.jac",
+        {"tests/test_foo.jac"}
+    );
+}
+
+test "rank_gap_candidates lowers missing-test weight when conventional test exists" {
+    files = ["walkers/foo.jac", "tests/test_foo.jac"];
+    without = rank_gap_candidates(files, set(), set(), ["walkers/"]);
+    with_tests = rank_gap_candidates(files, {"tests/test_foo.jac"}, set(), ["walkers/"]);
+    assert len(without) > 0 and len(with_tests) > 0;
+    assert int(without[0].get("score", 0)) > int(with_tests[0].get("score", 0));
 }
 
 test "package_alias_map contains pillow alias" {

@@ -3,7 +3,7 @@
 import from graph.nodes { GhostwatchIncidentNode }
 import from integrations.github { fetch_file_content, get_parent_commit_sha }
 import from lib.manifest { fix_invert_manifest }
-import from lib.sandbox_exec { run_dependency_install_sandbox }
+import from lib.sandbox_exec { run_manifest_body_sandbox }
 import from walkers.ghostwatch.pr_creator { GhostwatchPRCreatorWalker }
 import from time { time }
 
@@ -20,11 +20,8 @@ impl FixGenerationWalker.run with root() entry {
         par = fetch_file_content(target.repo_full_name, target.manifest_path, psha);
         cur = fetch_file_content(target.repo_full_name, target.manifest_path, target.commit_sha);
         fixed = fix_invert_manifest(target.manifest_path, par, cur, target.dependency_name);
-        eco = "pip";
-        if target.manifest_path.endswith("package.json") {
-            eco = "npm";
-        }
-        val_raw = run_dependency_install_sandbox(eco, target.dependency_name, target.dependency_version, "");
+        mp = str(target.manifest_path);
+        val_raw = run_manifest_body_sandbox(mp, fixed);
         passed = val_raw.get("install_ok", False);
         if passed {
             _ = root() spawn GhostwatchPRCreatorWalker(incident_jid=self.incident_jid, validated_fix_content=fixed);
