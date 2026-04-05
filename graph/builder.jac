@@ -13,7 +13,7 @@ walker:pub GraphBuilderWalker {
     has skip_paths: list[str] = ["__pycache__/", ".jac/", "node_modules/", "dist/", "build/"];
     has allowed_extensions: list[str] = [".jac", ".py", ".json", ".toml"];
 
-    can build with `root entry;
+    can build with root() entry;
 
     def _should_skip(path: str) -> bool;
     def _detect_language(filename: str) -> str;

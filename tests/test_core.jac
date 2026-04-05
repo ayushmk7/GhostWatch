@@ -40,10 +40,10 @@ test "BlastRadiusMapper _severity_from_hops is correct" {
 
 test "SecurityAuditorWalker with empty allowed_nodes visits no nodes" {
     test_node = FileNode(path="src/a.jac", content="walker Foo {}", language="jac");
-    root ++> test_node;
+    root() ++> test_node;
 
     w = SecurityAuditorWalker(allowed_nodes={"__nonexistent__"}, pr_context="diff");
-    result: Any = root spawn w;
+    result: Any = root() spawn w;
 
     reports: Any = getattr(result, "reports", []);
     if reports and len(reports) > 0 {

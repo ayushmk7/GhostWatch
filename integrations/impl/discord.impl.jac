@@ -21,7 +21,7 @@ impl notify_discord(pr_number: str, risk: str, report_link: str) -> None {
         if resp.status_code not in [200, 204] {
             print(f"Discord webhook returned {resp.status_code}");
         }
-    } except Exception as e {
+    } except Exception as e { # jac:ignore[W2052]
         print(f"Discord notification failed: {e}");
     }
 }
@@ -37,7 +37,7 @@ impl notify_discord_error(pr_number: str, error_message: str) -> None {
     };
     try {
         requests.post(webhook_url, json=payload, timeout=10);
-    } except Exception as e {
+    } except Exception as e { # jac:ignore[W2052]
         print(f"Discord error notification failed: {e}");
     }
 }

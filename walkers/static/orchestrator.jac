@@ -10,17 +10,17 @@ import from typing { Any }
 
 walker:pub OrchestratorWalker {
     has pr_url: str;
-    has verdict: dict = {};
+    has verdict: dict[str, Any] = {};
 
-    can orchestrate with `root entry;
+    can orchestrate with root() entry;
 
-    def _run_security(start_node: FileNode, allowed_nodes: set, diff: str) -> dict;
-    def _run_compat(start_node: FileNode, allowed_nodes: set, changed_apis: list, diff: str) -> dict;
-    def _run_blast(start_node: FileNode, changed_paths: list) -> dict;
+    def _run_security(start_node: FileNode, allowed_nodes: set[str], diff: str) -> dict[str, Any];
+    def _run_compat(start_node: FileNode, allowed_nodes: set[str], changed_apis: list[str], diff: str) -> dict[str, Any];
+    def _run_blast(start_node: FileNode, changed_paths: list[str]) -> dict[str, Any];
     def _get_subgraph_root() -> FileNode | None;
-    def _build_allowed_nodes(changed_files: list) -> set;
+    def _build_allowed_nodes(changed_files: list[str]) -> set[str];
 
     def _merge_findings(security: Any, compat: Any, blast: Any, pr_url: str) -> VerdictObject by llm;
 }
 
-sem OrchestratorWalker._merge_findings = "Synthesize security findings, compatibility issues, and blast radius data into a single VerdictObject representing the overall risk of this PR.";
+sem OrchestratorWalker._merge_findings = "Synthesize security findings, compatibility issues, and blast radius data into a single VerdictObject representing the overall risk of this PR."; # jac:ignore[W2001]

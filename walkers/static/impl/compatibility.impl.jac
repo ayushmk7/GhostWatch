@@ -16,7 +16,7 @@ impl CompatibilityCheckerWalker.check_api_surface with FileNode entry {
             );
             self.findings = self.findings + new_findings;
         }
-    } except Exception as e {
+    } except Exception as e { # jac:ignore[W2052]
         print(f"CompatibilityChecker LLM call failed for {here.path}: {e}");
     }
     visit [-->][?:FileNode];

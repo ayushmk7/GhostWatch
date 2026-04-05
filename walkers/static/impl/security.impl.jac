@@ -17,7 +17,7 @@ impl SecurityAuditorWalker.analyze with FileNode entry {
             pr_context=self.pr_context
         );
         self.findings = self.findings + new_findings;
-    } except Exception as e {
+    } except Exception as e { # jac:ignore[W2052]
         print(f"SecurityAuditor LLM call failed for {here.path}: {e}");
     }
     visit [-->][?:FileNode];

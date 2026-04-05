@@ -15,7 +15,7 @@ impl validate_webhook_signature(payload: bytes, signature: str, secret: str) -> 
     ).hexdigest();
     try {
         return hmac.compare_digest(expected, signature);
-    } except Exception {
+    } except Exception { # jac:ignore[W2052]
         return False;
     }
 }
@@ -55,7 +55,7 @@ impl fetch_file_content(repo_name: str, file_path: str, ref: str) -> str {
         file_obj: Any = repo.get_contents(file_path, ref=ref);
         content: str = file_obj.decoded_content.decode("utf-8");
         return content;
-    } except Exception as e {
+    } except Exception as e { # jac:ignore[W2052]
         print(f"fetch_file_content failed for {file_path}: {e}");
         return "";
     }

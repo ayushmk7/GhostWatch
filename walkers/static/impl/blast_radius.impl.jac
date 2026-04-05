@@ -17,14 +17,14 @@ impl BlastRadiusMapperWalker.map_blast with FileNode entry {
     self.traversal_path.append(jid(here));
 
     try {
-        node_score = self._score_node(
+        node_score = self._score_node(  # jac:ignore[W2001]
             node_path=here.path,
             node_language=here.language,
             hop_distance=self.current_hop
         );
         here.risk_score = node_score;
         self.risk_score += node_score;
-    } except Exception as e {
+    } except Exception as e { # jac:ignore[W2052]
         print(f"BlastRadius score failed for {here.path}: {e}");
         here.risk_score = max(0, 10 - self.current_hop * 2);
         self.risk_score += here.risk_score;

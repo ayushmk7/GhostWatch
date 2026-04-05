@@ -17,4 +17,4 @@ walker BlastRadiusMapperWalker {
     def _severity_from_hops(hops: int) -> str;
 }
 
-sem BlastRadiusMapperWalker._score_node = "Return an integer 0-20 representing how risky this node is at this hop distance. Higher scores for core files, lower for test/doc files and farther hops.";
+sem BlastRadiusMapperWalker._score_node = "Return an integer 0-20 representing how risky this node is at this hop distance. Higher scores for core files, lower for test/doc files and farther hops."; # jac:ignore[W2001]

@@ -20,7 +20,7 @@ walker:pub GitHubWebhookWalker {
     has payload: dict;
     has signature: str = "";
 
-    can handle with `root entry {
+    can handle with root() entry {
         secret = environ.get("GITHUB_WEBHOOK_SECRET", "");
         if secret and self.signature {
             payload_bytes: bytes = str(self.payload).encode();
@@ -36,7 +36,7 @@ walker:pub GitHubWebhookWalker {
                 pr = self.payload.get("pull_request", {});
                 pr_url: str = str(pr.get("html_url", ""));
                 if pr_url {
-                    root spawn OrchestratorWalker(pr_url=pr_url);
+                    root() spawn OrchestratorWalker(pr_url=pr_url);
                     report {"status": "analysis_triggered", "pr_url": pr_url};
                     return;
                 }

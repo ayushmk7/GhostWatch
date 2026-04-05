@@ -4,8 +4,8 @@ import from graph.nodes { PRAnalysisNode }
 import from integrations.github { post_pr_comment }
 import from typing { Any }
 
-impl PRCommentWriterWalker.post_review with `root entry {
-    pr_nodes = [root -->][?:PRAnalysisNode];
+impl PRCommentWriterWalker.post_review with root() entry {
+    pr_nodes = [root() -->][?:PRAnalysisNode];
     target: PRAnalysisNode | None = None;
     for node in pr_nodes {
         if jid(node) == self.verdict_id {
@@ -27,7 +27,7 @@ impl PRCommentWriterWalker.post_review with `root entry {
 
     try {
         comment_body = self._format_verdict_comment(verdict=verdict);
-    } except Exception as e {
+    } except Exception as e { # jac:ignore[W2052]
         risk = verdict.get("overall_risk", "unknown").upper();
         score = verdict.get("risk_score", 0);
         affected = verdict.get("affected_node_count", 0);
@@ -50,7 +50,7 @@ impl PRCommentWriterWalker.post_review with `root entry {
         post_pr_comment(self.pr_url, comment_body);
         target.verdict = {**verdict, "comment_posted": True};
         report {"status": "success", "comments_posted": 1};
-    } except Exception as e {
+    } except Exception as e { # jac:ignore[W2052]
         report {"error": str(e), "status": "failed", "comments_posted": 0};
     }
 }

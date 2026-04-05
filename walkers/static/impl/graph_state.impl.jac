@@ -1,12 +1,13 @@
 # walkers/static/impl/graph_state.impl.jac
 
 import from graph.nodes { FileNode, PRAnalysisNode }
+import from typing { Any }
 
-impl GraphStateWalker.get_state with `root entry {
-    nodes_data: list = [];
-    edges_data: list = [];
+impl GraphStateWalker.get_state with root() entry {
+    nodes_data: list[dict[str, Any]] = [];
+    edges_data: list[dict[str, str]] = [];
 
-    for fn in [root -->][?:FileNode] {
+    for fn in [root() -->][?:FileNode] {
         nodes_data.append({
             "id": jid(fn),
             "path": fn.path,
@@ -16,7 +17,7 @@ impl GraphStateWalker.get_state with `root entry {
         });
     }
 
-    for fn in [root -->][?:FileNode] {
+    for fn in [root() -->][?:FileNode] {
         for neighbor in [fn -->][?:FileNode] {
             edges_data.append({
                 "source": jid(fn),
@@ -26,7 +27,7 @@ impl GraphStateWalker.get_state with `root entry {
         }
     }
 
-    pr_nodes = [root -->][?:PRAnalysisNode];
+    pr_nodes = [root() -->][?:PRAnalysisNode];
     latest_analysis = None;
     if pr_nodes {
         last_pr = pr_nodes[-1];

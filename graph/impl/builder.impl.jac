@@ -6,8 +6,8 @@ import from integrations.github { get_repo_tree, fetch_file_content }
 import from ast { parse, walk, Import as AstImport, ImportFrom }
 import from typing { Any }
 
-impl GraphBuilderWalker.build with `root entry {
-    existing = [root -->][?:FileNode];
+impl GraphBuilderWalker.build with root() entry {
+    existing = [root() -->][?:FileNode];
     if len(existing) > 0 {
         report {
             "status": "already_built",
@@ -18,7 +18,7 @@ impl GraphBuilderWalker.build with `root entry {
     }
 
     tree = get_repo_tree(self.repo_name, self.branch);
-    path_to_node: dict = {};
+    path_to_node: dict[str, FileNode] = {};
 
     for item in tree {
         path: str = item["path"];
@@ -36,7 +36,7 @@ impl GraphBuilderWalker.build with `root entry {
         }
         lang = self._detect_language(path);
         is_test: bool = ("test" in path.lower()) or (path.startswith("tests/"));
-        file_node = (root ++> FileNode(
+        file_node = (root() ++> FileNode(
             path=path,
             content=content,
             language=lang,
@@ -70,11 +70,11 @@ impl GraphBuilderWalker._should_skip(path: str) -> bool {
 impl GraphBuilderWalker._detect_language(filename: str) -> str {
     dot_idx = filename.rfind(".");
     ext = filename[dot_idx:] if dot_idx >= 0 else "";
-    lang_map: dict = {".jac": "jac", ".py": "python", ".json": "json", ".toml": "toml"};
+    lang_map: dict[str, str] = {".jac": "jac", ".py": "python", ".json": "json", ".toml": "toml"};
     return lang_map.get(ext, "unknown");
 }
 
-impl GraphBuilderWalker._build_import_edges(file_node: FileNode, path_to_node: dict) -> None {
+impl GraphBuilderWalker._build_import_edges(file_node: FileNode, path_to_node: dict[str, FileNode]) -> None {
     if file_node.language != "python" {
         return;
     }
@@ -99,7 +99,7 @@ impl GraphBuilderWalker._build_import_edges(file_node: FileNode, path_to_node: d
                 }
             }
         }
-    } except Exception as e {
+    } except Exception as e { # jac:ignore[W2052]
         print(f"Import edge build failed for {file_node.path}: {e}");
     }
 }
