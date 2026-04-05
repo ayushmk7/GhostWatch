@@ -24,7 +24,7 @@ def:pub GraphStateProvider(children: any) -> JsxElement {
     useEffect(lambda -> None {
         async def runFetch() -> None {
             try {
-                result = await jacSpawn("GraphStateWalker", "", {});
+                result = await jacSpawn("GraphStateProxy", "", {});
                 reps = (
                     result["reports"]
                     if result and ("reports" in result)
