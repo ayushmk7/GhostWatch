@@ -541,45 +541,31 @@ def:pub AppShell(mode: str) -> JsxElement {
 
     if isContributor {
             if activeSection == "Overview" {
-                panelTitle = "Overview · " + repoDisplay;
-                topDescription = (
-                    "Open work, documentation pressure, and movement for "
-                        + repoDisplay
-                        + " only — not your whole GitHub account."
-                );
+                panelTitle = "Overview";
+                topDescription = "";
                 searchPlaceholder = "Search paths and symbols in " + repoDisplay;
                 analysisButtonLabel = "Analyze";
             } else {
                 if activeSection == "Suggestions" {
-                    panelTitle = "Suggestions · " + repoDisplay;
-                    topDescription = (
-                        "Live GitHub issues from the repository alongside ranked starter tasks from the latest digest or gap analysis."
-                    );
+                    panelTitle = "Suggestions";
+                    topDescription = "";
                     searchPlaceholder = "Filter issues and suggested tasks";
                     analysisButtonLabel = "Analyze";
                 } else {
                     if activeSection == "Docs & tests" {
-                        panelTitle = "Docs & tests · " + repoDisplay;
-                        topDescription = (
-                            "Documentation and testing gaps surfaced by the latest repository analysis for "
-                                + repoDisplay
-                                + "."
-                        );
+                        panelTitle = "Docs & tests";
+                        topDescription = "";
                         searchPlaceholder = "Search doc or test paths";
                         analysisButtonLabel = "Analyze";
                     } else {
                         if activeSection == "Activity" {
-                            panelTitle = "Activity · " + repoDisplay;
-                            topDescription = (
-                                "Recent GhostWatch analysis and incident activity on " + repoDisplay + "."
-                            );
+                            panelTitle = "Activity";
+                            topDescription = "";
                             searchPlaceholder = "Search recent GhostWatch events";
                             analysisButtonLabel = "Analyze";
                         } else {
                             panelTitle = "Settings";
-                            topDescription = (
-                                "Notification defaults and every repository you have added to your contributor workspace."
-                            );
+                            topDescription = "";
                             searchPlaceholder = "Search settings";
                             analysisButtonLabel = "Save changes";
                         }
@@ -588,47 +574,31 @@ def:pub AppShell(mode: str) -> JsxElement {
             }
         } else {
             if activeSection == "Overview" {
-                panelTitle = "Overview · " + repoDisplay;
-                topDescription = (
-                    "Live posture for "
-                        + repoDisplay
-                        + ": pull requests under watch, walker signals, and maintainer-sized attention items."
-                );
+                panelTitle = "Overview";
+                topDescription = "";
                 searchPlaceholder = "Search alerts, walkers, or paths in " + repoDisplay;
                 analysisButtonLabel = "Run Analysis";
             } else {
                 if activeSection == "PR Review" {
-                    panelTitle = "PR Review · " + repoDisplay;
-                    topDescription = (
-                        "Pull requests GhostWatch is tracking on "
-                            + repoDisplay
-                            + " with risk hints and gate status."
-                    );
+                    panelTitle = "PR Review";
+                    topDescription = "";
                     searchPlaceholder = "Search PR titles or authors";
                     analysisButtonLabel = "Refresh PR list";
                 } else {
                     if activeSection == "Dependency Alerts" {
-                        panelTitle = "Dependency Alerts · " + repoDisplay;
-                        topDescription = (
-                            "Manifest drift, version jumps, and supply-chain signals scoped to " + repoDisplay + "."
-                        );
+                        panelTitle = "Dependency Alerts";
+                        topDescription = "";
                         searchPlaceholder = "Search packages or CVEs";
                         analysisButtonLabel = "Rescan dependencies";
                     } else {
                         if activeSection == "Incidents" {
-                            panelTitle = "Incidents · " + repoDisplay;
-                            topDescription = (
-                                "Escalations and findings for "
-                                    + repoDisplay
-                                    + " — the same feed the defense desk would own in production."
-                            );
+                            panelTitle = "Incidents";
+                            topDescription = "";
                             searchPlaceholder = "Search incident titles";
                             analysisButtonLabel = "Refresh incidents";
                         } else {
                             panelTitle = "Settings";
-                            topDescription = (
-                                "How the maintainer desk notifies you and which repositories stay on the watch list."
-                            );
+                            topDescription = "";
                             searchPlaceholder = "Search settings";
                             analysisButtonLabel = "Save changes";
                         }
@@ -737,9 +707,10 @@ def:pub AppShell(mode: str) -> JsxElement {
                                     <h1>
                                         {panelTitle}
                                     </h1>
-                                    <p>
-                                        {topDescription}
-                                    </p>
+                                    {topDescription and
+                                        <p>
+                                            {topDescription}
+                                        </p>}
                                 </div>
                                 <div className="gw-topbar-actions">
                                     <button type="button" className="gw-repo-select">
@@ -797,35 +768,6 @@ def:pub AppShell(mode: str) -> JsxElement {
                                             placeholder={searchPlaceholder}
                                         />
                                     </div>
-                                    <button
-                                        type="button"
-                                        className="gw-icon-button"
-                                        aria-label="Notifications"
-                                    >
-                                        <svg
-                                            width="18"
-                                            height="18"
-                                            viewBox="0 0 24 24"
-                                            fill="none"
-                                            aria-hidden="true"
-                                        >
-                                            <path
-                                                d="M12 4.5C9.8 4.5 8 6.3 8 8.5V10.1C8 11 7.7 11.9 7.2 12.7L6 14.5H18L16.8 12.7C16.3 11.9 16 11 16 10.1V8.5C16 6.3 14.2 4.5 12 4.5Z"
-                                                stroke="rgba(220,239,255,0.82)"
-                                                strokeWidth="1.5"
-                                                strokeLinejoin="round"
-                                            ></path>
-                                            <path
-                                                d="M10.2 17.5C10.6 18.4 11.2 18.8 12 18.8C12.8 18.8 13.4 18.4 13.8 17.5"
-                                                stroke="rgba(125,211,255,0.82)"
-                                                strokeWidth="1.5"
-                                                strokeLinecap="round"
-                                            ></path>
-                                        </svg>
-                                        <span className="gw-icon-badge">
-                                            3
-                                        </span>
-                                    </button>
                                     <button
                                         type="button"
                                         className="gw-glass-button gw-button-primary"
