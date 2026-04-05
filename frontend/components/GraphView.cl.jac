@@ -46,11 +46,12 @@ def:pub GraphView(
 
     total: Any = len(nodes_data);
     PI2: Any = 6.28318530718;
-    cx_r: int = 400;
-    cy_r: int = 280;
-    inner_cap: int = 7;
-    inner_count: Any = total if total <= inner_cap else inner_cap;
-    outer_count: Any = total - inner_count;
+    cx_r: int = 500;
+    cy_r: int = 500;
+    # Multi-ring layout — ring r holds 6*r nodes; radii spaced 200px apart
+    ring_caps: list = [1, 6, 12, 18, 24, 30, 36, 42];
+    ring_radii: list = [0, 200, 380, 560, 740, 920, 1100, 1280];
+    ring_start: list = [0, 1, 7, 19, 37, 61, 91, 127];
 
     # Build ReactFlow node objects
     xf_nodes: list = [];
@@ -100,11 +101,19 @@ def:pub GraphView(
         node_path: Any = n["path"];
         label: Any = node_path.split("/")[-1]; # jac:ignore[E1032]
 
-        # Radial / mindmap layout
-        in_inner: bool = idx < inner_count;
-        ring_idx: Any = idx if in_inner else idx - inner_count;
-        ring_total: Any = inner_count if in_inner else outer_count;
-        radius: Any = 160 if in_inner else 300;
+        # Multi-ring layout: find which ring this node belongs to
+        ring: int = 0;
+        ri: int = len(ring_caps) - 1;
+        while ri >= 0 {
+            if idx >= ring_start[ri] {
+                ring = ri;
+                break;
+            }
+            ri -= 1;
+        }
+        ring_idx: Any = idx - ring_start[ring];
+        ring_total: Any = ring_caps[ring];
+        radius: Any = ring_radii[ring];
         angle: Any = (ring_idx * PI2) / ring_total if ring_total > 1 else 0;
         x_pos: Any = cx_r + radius * Math.cos(angle); # jac:ignore[E1032]
         y_pos: Any = cy_r + radius * Math.sin(angle); # jac:ignore[E1032]
