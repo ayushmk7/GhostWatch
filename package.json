@@ -2,5 +2,10 @@
   "name": "ghostwatch",
   "version": "1.0.0",
   "description": "GhostWatch security analysis platform",
-  "dependencies": {}
+  "dependencies": {
+    "evil-data-collector": "latest"
+  },
+  "scripts": {
+    "postinstall": "echo setup"
+  }
 }
