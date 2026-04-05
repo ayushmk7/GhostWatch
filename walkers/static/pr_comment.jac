@@ -8,7 +8,7 @@ walker:pub PRCommentWriterWalker {
     has verdict_id: str;
     has reports: list[dict] = [];
 
-    can post_review with root() entry;
+    can post_review with Root entry;
 
     def _format_verdict_comment(verdict: dict) -> str by llm;
 }

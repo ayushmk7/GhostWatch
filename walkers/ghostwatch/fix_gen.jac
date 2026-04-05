@@ -6,7 +6,7 @@ walker:pub FixGenerationWalker {
     has incident_jid: str;
     has reports: list = [];
 
-    can run with root() entry;
+    can run with Root entry;
 
     def _explain_fix(incident: dict) -> str;
 }

@@ -29,7 +29,7 @@ impl DependencyDiffWalker._collect_normalized_imports() -> set[str] {
     return names;
 }
 
-impl DependencyDiffWalker.run with root() entry {
+impl DependencyDiffWalker.run with Root entry {
     graph_imports = self._collect_normalized_imports();
     for mp in self.manifest_paths {
         mps = str(mp);

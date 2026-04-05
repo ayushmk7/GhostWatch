@@ -5,7 +5,7 @@ import from integrations.github { validate_webhook_signature, list_commit_files,
 import from walkers.ghostwatch.dep_diff { DependencyDiffWalker }
 import from walkers.ghostwatch.gap_analysis { GapAnalysisWalker }
 
-impl GitHubSystem2WebhookWalker.run with root() entry {
+impl GitHubSystem2WebhookWalker.run with Root entry {
     secret = environ.get("GITHUB_WEBHOOK_SECRET", "");
     if secret and self.signature and self.raw_body {
         payload_bytes = self.raw_body.encode("utf-8");

@@ -15,7 +15,7 @@ impl GapAnalysisWalker._word_suggestion(path: str, gap_kind: str) -> dict {
     };
 }
 
-impl GapAnalysisWalker.run with root() entry {
+impl GapAnalysisWalker.run with Root entry {
     paths = [];
     test_paths = set();
     doc_paths = set();

@@ -14,10 +14,10 @@ walker:pub GraphStateWalker {
     has latest_gap: dict | None = None;
     has reports: list = [];
 
-    can fetch with root() entry;
+    can fetch with Root entry;
     can collect_file with FileNode entry;
     can collect_pr with PRAnalysisNode entry;
     can collect_incident with GhostwatchIncidentNode entry;
     can collect_gap with GapAnalysisNode entry;
-    can finish with root() exit;
+    can finish with Root exit;
 }

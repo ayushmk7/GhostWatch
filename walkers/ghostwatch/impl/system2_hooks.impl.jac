@@ -6,7 +6,7 @@ import from graph.nodes { GhostwatchIncidentNode }
 import from integrations.discord { notify_discord_escalation }
 import from time { time }
 
-impl System2PushTriggerWalker.run with root() entry {
+impl System2PushTriggerWalker.run with Root entry {
     _ = root() spawn DependencyDiffWalker(
         repo_full_name=self.repo_full_name,
         commit_sha=self.commit_sha,
@@ -16,12 +16,12 @@ impl System2PushTriggerWalker.run with root() entry {
     report {"status": "push_dispatched"};
 }
 
-impl System2MergeTriggerWalker.run with root() entry {
+impl System2MergeTriggerWalker.run with Root entry {
     _ = root() spawn GapAnalysisWalker(repo_full_name=self.repo_full_name, merge_commit_sha=self.merge_commit_sha);
     report {"status": "merge_dispatched"};
 }
 
-impl System2EscalationTickWalker.run with root() entry {
+impl System2EscalationTickWalker.run with Root entry {
     now = str(int(time()));
     for inc in [root() -->][?:GhostwatchIncidentNode] {
         if inc.next_escalation_at and inc.next_escalation_at <= now and inc.alert_state != "escalated" {

@@ -14,6 +14,13 @@ import from walkers.static.pr_comment { PRCommentWriterWalker }
 import from integrations.github { validate_webhook_signature }
 import from integrations.discord { notify_discord }
 import from os { environ }
+import from walkers.ghostwatch.github_system2_webhook { GitHubSystem2WebhookWalker }
+import from walkers.ghostwatch.system2_hooks { System2PushTriggerWalker, System2MergeTriggerWalker, System2EscalationTickWalker }
+import from walkers.ghostwatch.dep_diff { DependencyDiffWalker }
+import from walkers.ghostwatch.sandbox { SandboxExecutorWalker }
+import from walkers.ghostwatch.fix_gen { FixGenerationWalker }
+import from walkers.ghostwatch.pr_creator { GhostwatchPRCreatorWalker }
+import from walkers.ghostwatch.gap_analysis { GapAnalysisWalker }
 
 walker:pub GitHubWebhookWalker {
     has event_type: str;

@@ -27,7 +27,7 @@ impl SandboxExecutorWalker._interpret_behavior(raw_evidence: dict) -> dict {
     };
 }
 
-impl SandboxExecutorWalker.run with root() entry {
+impl SandboxExecutorWalker.run with Root entry {
     handled = False;
     for target in [root() -->][?:GhostwatchIncidentNode] {
         if str(jid(target)) != self.incident_jid {

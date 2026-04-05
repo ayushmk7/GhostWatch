@@ -11,7 +11,7 @@ impl FixGenerationWalker._explain_fix(incident: dict) -> str {
     return "GhostWatch fix (LLM stub)";
 }
 
-impl FixGenerationWalker.run with root() entry {
+impl FixGenerationWalker.run with Root entry {
     for target in [root() -->][?:GhostwatchIncidentNode] {
         if str(jid(target)) != self.incident_jid {
             continue;

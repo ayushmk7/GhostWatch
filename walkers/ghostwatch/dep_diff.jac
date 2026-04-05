@@ -7,7 +7,7 @@ walker:pub DependencyDiffWalker {
     has manifest_paths: list;
     has reports: list = [];
 
-    can run with root() entry;
+    can run with Root entry;
 
     def _collect_normalized_imports() -> set[str];
 }

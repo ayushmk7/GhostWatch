@@ -6,7 +6,7 @@ walker:pub SandboxExecutorWalker {
     has incident_jid: str;
     has reports: list = [];
 
-    can run with root() entry;
+    can run with Root entry;
 
     def _interpret_behavior(raw_evidence: dict) -> dict;
 }

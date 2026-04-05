@@ -21,7 +21,7 @@ def _escalation_job(jid_arg: str) -> None {
     print(f"GhostWatch escalation tick for {jid_arg}");
 }
 
-impl GhostwatchPRCreatorWalker.run with root() entry {
+impl GhostwatchPRCreatorWalker.run with Root entry {
     for target in [root() -->][?:GhostwatchIncidentNode] {
         if str(jid(target)) != self.incident_jid {
             continue;

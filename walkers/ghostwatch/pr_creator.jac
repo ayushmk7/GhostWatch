@@ -7,7 +7,7 @@ walker:pub GhostwatchPRCreatorWalker {
     has validated_fix_content: str;
     has reports: list = [];
 
-    can run with root() entry;
+    can run with Root entry;
 
     def _format_pr_body(incident: dict) -> str;
 }

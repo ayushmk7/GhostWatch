@@ -7,7 +7,7 @@ walker:pub System2PushTriggerWalker {
     has manifest_paths: list;
     has reports: list = [];
 
-    can run with root() entry;
+    can run with Root entry;
 }
 
 walker:pub System2MergeTriggerWalker {
@@ -15,11 +15,11 @@ walker:pub System2MergeTriggerWalker {
     has merge_commit_sha: str;
     has reports: list = [];
 
-    can run with root() entry;
+    can run with Root entry;
 }
 
 walker:pub System2EscalationTickWalker {
     has reports: list = [];
 
-    can run with root() entry;
+    can run with Root entry;
 }

@@ -5,7 +5,7 @@ walker:pub GapAnalysisWalker {
     has merge_commit_sha: str;
     has reports: list = [];
 
-    can run with root() entry;
+    can run with Root entry;
 
     def _word_suggestion(path: str, gap_kind: str) -> dict;
 }

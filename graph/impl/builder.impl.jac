@@ -6,7 +6,7 @@ import from lib.manifest { parse_manifest_deps }
 import from os.path { splitext }
 import from ast { parse, walk, Import as AstImport, ImportFrom }
 
-impl GraphBuilderWalker.build with root() entry {
+impl GraphBuilderWalker.build with Root entry {
     existing = [root() -->][?:FileNode];
     path_to_node: dict[str, FileNode] = {};
     for fn in existing {
