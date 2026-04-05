@@ -1,3 +1,28 @@
+import from requests { post }
+import from typing { Any }
+
+walker:pub GraphStateProxy {
+    can fetch with root entry {
+        resp: Any = post(
+            "http://localhost:8080/walker/GraphStateWalker",
+            json={}
+        );
+        report resp.json();
+    }
+}
+
+walker:pub OrchestratorProxy {
+    has pr_url: str;
+
+    can run with root entry {
+        resp: Any = post(
+            "http://localhost:8080/walker/OrchestratorWalker",
+            json={"pr_url": self.pr_url}
+        );
+        report resp.json();
+    }
+}
+
 cl import from "@jac/runtime" { Router, Routes, Route, Navigate }
 cl import from .theme { APP_STYLES }
 cl import from .pages.index { page as IndexPage }
