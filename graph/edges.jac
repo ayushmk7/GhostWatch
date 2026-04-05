@@ -1,4 +1,4 @@
-# graph/edges.jac — Pure edge declarations. No logic, no imports.
+# graph/edges.jac — [SHARED] Pure edge declarations.
 
 edge ImportEdge {
     has is_direct: bool = True;
@@ -8,6 +8,10 @@ edge ImportEdge {
 edge BlastEdge {
     has hops: int = 1;
     has impact_type: str = "direct";
+}
+
+edge DependencyEdge {
+    has scope: str = "direct";
 }
 
 edge FindingEdge {

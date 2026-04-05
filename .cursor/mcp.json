@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "jac": {
+      "type": "stdio",
+      "command": "/Users/ayush/Downloads/My Projects/Random/GhostWatch/.venv-jac-mcp/bin/jac",
+      "args": ["mcp"]
+    }
+  }
+}

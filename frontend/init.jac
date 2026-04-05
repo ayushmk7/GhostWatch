@@ -1,4 +1,1 @@
-with entry {
-    print("Hello");
-}
-
+with entry { }

@@ -43,12 +43,12 @@ sem ContributorSuggestion.suggestion_type = "missing_tests, missing_docs, incomp
 obj VerdictObject {
     has overall_risk: str;
     has risk_score: int;
-    has security_findings: list[SecurityFinding];
-    has compatibility_issues: list[CompatibilityIssue];
     has affected_node_count: int;
     has blast_radius_summary: str;
     has recommendation: str;
-    has traversal_paths: dict[str, list[str]];
+    has security_findings: list = [];
+    has compatibility_issues: list = [];
+    has traversal_paths: dict = {};
 }
 
 sem VerdictObject.overall_risk = "critical, high, medium, low, or clean — the overall PR risk level";

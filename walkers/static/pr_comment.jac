@@ -1,11 +1,14 @@
-# walkers/static/pr_comment.jac — Posts GitHub PR review comment on Approve.
-# Idempotent — checks if comment already posted.
+# walkers/static/pr_comment.jac
+# PRCommentWriterWalker: posts a single review comment to GitHub PR on Approve.
+# Idempotent — checks if comment already posted before writing.
+# Implementation in impl/pr_comment.impl.jac
 
 walker:pub PRCommentWriterWalker {
     has pr_url: str;
     has verdict_id: str;
+    has reports: list = [];
 
-    can post_review with Root entry;
+    can post_review with root() entry;
 
     def _format_verdict_comment(verdict: dict) -> str by llm;
 }
