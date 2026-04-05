@@ -1,7 +1,7 @@
 cl import from "@jac/runtime" { Router, Routes, Route, Navigate }
 cl import from .theme { APP_STYLES }
-cl import from .pages.index { IndexPage }
-cl import from .pages.start { StartPage }
+cl import from .pages.index { page as IndexPage }
+cl import from .pages.start { page as StartPage }
 cl import from .components.AppShell { AppShell }
 
 cl {

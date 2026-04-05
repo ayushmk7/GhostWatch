@@ -9,7 +9,7 @@ cl import from ..components.FlowCard { FlowCard }
 cl import from ..components.PreviewShellStrip { PreviewShellStrip }
 
 cl {
-    def:pub IndexPage() -> JsxElement {
+    def:pub page() -> JsxElement {
         return
             <div className="gw-page">
                 <AmbientBackground screen="landing"/>

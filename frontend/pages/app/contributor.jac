@@ -1,4 +1,4 @@
-cl import from frontend.components.AppShell { AppShell }
+cl import from ...components.AppShell { AppShell }
 
 cl {
     def:pub page() -> JsxElement {

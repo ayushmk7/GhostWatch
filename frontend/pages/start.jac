@@ -2,7 +2,7 @@ cl import from "@jac/runtime" { Link }
 cl import from ..components.AmbientBackground { AmbientBackground }
 
 cl {
-    def:pub StartPage() -> JsxElement {
+    def:pub page() -> JsxElement {
         return
             <div className="gw-page">
                 <AmbientBackground screen="landing"/>
