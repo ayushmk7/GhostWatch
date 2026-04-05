@@ -4,7 +4,7 @@ import from graph.nodes { PRAnalysisNode }
 import from integrations.github { post_pr_comment }
 import from typing { Any }
 
-impl PRCommentWriterWalker.post_review with root() entry {
+impl PRCommentWriterWalker.post_review with Root entry {
     pr_nodes = [root() -->][?:PRAnalysisNode];
     target: PRAnalysisNode | None = None;
     for node in pr_nodes {

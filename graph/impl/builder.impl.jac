@@ -6,7 +6,7 @@ import from integrations.github { get_repo_tree, fetch_file_content }
 import from ast { parse, walk, Import as AstImport, ImportFrom }
 import from typing { Any }
 
-impl GraphBuilderWalker.build with root() entry {
+impl GraphBuilderWalker.build with Root entry {
     existing = [root() -->][?:FileNode];
     if len(existing) > 0 {
         report {

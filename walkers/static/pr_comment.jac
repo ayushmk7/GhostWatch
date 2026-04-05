@@ -5,7 +5,7 @@ walker:pub PRCommentWriterWalker {
     has pr_url: str;
     has verdict_id: str;
 
-    can post_review with root() entry;
+    can post_review with Root entry;
 
     def _format_verdict_comment(verdict: dict) -> str by llm;
 }

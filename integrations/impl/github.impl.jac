@@ -25,7 +25,7 @@ impl fetch_pr_diff(pr_url: str) -> PRDiff {
     g: Any = Github(environ.get("GITHUB_TOKEN", ""));
     parts = pr_url.rstrip("/").split("/");
     pr_number = int(parts[-1]);
-    repo_name = parts[-3] + "/" + parts[-2];
+    repo_name = parts[-4] + "/" + parts[-3];
     repo: Any = g.get_repo(repo_name);
     pr: Any = repo.get_pull(pr_number);
     files: Any = list(pr.get_files());
@@ -66,7 +66,7 @@ impl post_pr_comment(pr_url: str, body: str) -> None {
     g: Any = Github(environ.get("GITHUB_TOKEN", ""));
     parts = pr_url.rstrip("/").split("/");
     pr_number = int(parts[-1]);
-    repo_name = parts[-3] + "/" + parts[-2];
+    repo_name = parts[-4] + "/" + parts[-3];
     repo: Any = g.get_repo(repo_name);
     pr: Any = repo.get_pull(pr_number);
     pr.create_issue_comment(body);

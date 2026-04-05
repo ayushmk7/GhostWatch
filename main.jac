@@ -20,7 +20,7 @@ walker:pub GitHubWebhookWalker {
     has payload: dict;
     has signature: str = "";
 
-    can handle with root() entry {
+    can handle with Root entry {
         secret = environ.get("GITHUB_WEBHOOK_SECRET", "");
         if secret and self.signature {
             payload_bytes: bytes = str(self.payload).encode();

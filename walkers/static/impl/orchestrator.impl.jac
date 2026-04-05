@@ -8,7 +8,7 @@ import from integrations.github { fetch_pr_diff }
 import from integrations.discord { notify_discord }
 import from typing { Any }
 
-impl OrchestratorWalker.orchestrate with root() entry {
+impl OrchestratorWalker.orchestrate with Root entry {
     try {
         pr_diff = fetch_pr_diff(self.pr_url);
     } except Exception as e { # jac:ignore[W2052]
@@ -26,17 +26,13 @@ impl OrchestratorWalker.orchestrate with root() entry {
         return;
     }
 
-    sec_future = flow self._run_security(
+    sec_result: Any = self._run_security(
         start_node, allowed_nodes, pr_diff.unified_diff
-    ) ;
-    com_future = flow self._run_compat(
+    );
+    com_result: Any = self._run_compat(
         start_node, allowed_nodes, pr_diff.changed_apis, pr_diff.unified_diff
-    ) ;
-    bla_future = flow self._run_blast(start_node, pr_diff.changed_files) ;
-
-    sec_result: Any = wait sec_future ;
-    com_result: Any = wait com_future ;
-    bla_result: Any = wait bla_future ;
+    );
+    bla_result: Any = self._run_blast(start_node, pr_diff.changed_files);
 
     verdict: Any = None;
     try {
@@ -87,11 +83,10 @@ impl OrchestratorWalker._run_security(
     result: Any = start_node spawn SecurityAuditorWalker(
         allowed_nodes=allowed_nodes, pr_context=diff
     );
-    reports: Any = getattr(result, "reports", []);
-    if reports {
-        return reports[0];
-    }
-    return {"findings": [], "traversal_path": []};
+    return {
+        "findings": getattr(result, "findings", []),
+        "traversal_path": getattr(result, "traversal_path", [])
+    };
 }
 
 impl OrchestratorWalker._run_compat(
@@ -100,24 +95,20 @@ impl OrchestratorWalker._run_compat(
     result: Any = start_node spawn CompatibilityCheckerWalker(
         allowed_nodes=allowed_nodes, changed_apis=changed_apis, pr_diff=diff
     );
-    reports: Any = getattr(result, "reports", []);
-    if reports {
-        return reports[0];
-    }
-    return {"findings": [], "traversal_path": []};
+    return {
+        "findings": getattr(result, "findings", []),
+        "traversal_path": getattr(result, "traversal_path", [])
+    };
 }
 
 impl OrchestratorWalker._run_blast(start_node: FileNode, changed_paths: list[str]) -> dict[str, Any] {
     result: Any = start_node spawn BlastRadiusMapperWalker(changed_nodes=changed_paths);
-    reports: Any = getattr(result, "reports", []);
-    if reports {
-        return reports[0];
-    }
+    affected: Any = getattr(result, "affected_nodes", []);
     return {
-        "affected_nodes": [],
-        "risk_score": 0,
-        "traversal_path": [],
-        "affected_count": 0
+        "affected_nodes": affected,
+        "risk_score": getattr(result, "risk_score", 0),
+        "traversal_path": getattr(result, "traversal_path", []),
+        "affected_count": len(affected)
     };
 }
 
@@ -130,18 +121,29 @@ impl OrchestratorWalker._get_subgraph_root() -> FileNode | None {
 }
 
 impl OrchestratorWalker._build_allowed_nodes(changed_files: list[str]) -> set[str] {
+    import from graph.edges { ImportEdge }
     allowed = set();
     all_file_nodes = [root()-->][?:FileNode];
-    changed_nodes: list[FileNode] = [];
+    changed_node_ids: set = set();
     for node in all_file_nodes {
         if node.path in changed_files {
             allowed.add(jid(node));
-            changed_nodes.append(node);
+            changed_node_ids.add(jid(node));
         }
     }
-    for node in changed_nodes {
-        for neighbor in [node -->][?:FileNode] {
-            allowed.add(jid(neighbor));
+    # Extend allowed set to include direct neighbors via Python-level edge access
+    for node in all_file_nodes {
+        if jid(node) in changed_node_ids {
+            node_any: Any = node;
+            for edge in node_any.__jac__.edges {
+                target_anchor: Any = edge.target;
+                if target_anchor is not None {
+                    target_node: Any = target_anchor.archetype;
+                    if isinstance(target_node, FileNode) {
+                        allowed.add(jid(target_node));
+                    }
+                }
+            }
         }
     }
     return allowed;

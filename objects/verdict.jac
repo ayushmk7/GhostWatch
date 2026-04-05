@@ -48,7 +48,7 @@ obj VerdictObject {
     has affected_node_count: int;
     has blast_radius_summary: str;
     has recommendation: str;
-    has traversal_paths: dict;
+    has traversal_paths: dict[str, list[str]];
 }
 
 sem VerdictObject.overall_risk = "critical, high, medium, low, or clean — the overall PR risk level";

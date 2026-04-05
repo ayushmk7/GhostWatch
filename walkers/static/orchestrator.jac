@@ -12,7 +12,7 @@ walker:pub OrchestratorWalker {
     has pr_url: str;
     has verdict: dict[str, Any] = {};
 
-    can orchestrate with root() entry;
+    can orchestrate with Root entry;
 
     def _run_security(start_node: FileNode, allowed_nodes: set[str], diff: str) -> dict[str, Any];
     def _run_compat(start_node: FileNode, allowed_nodes: set[str], changed_apis: list[str], diff: str) -> dict[str, Any];

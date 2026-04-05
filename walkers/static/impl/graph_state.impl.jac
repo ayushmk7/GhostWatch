@@ -3,7 +3,7 @@
 import from graph.nodes { FileNode, PRAnalysisNode }
 import from typing { Any }
 
-impl GraphStateWalker.get_state with root() entry {
+impl GraphStateWalker.get_state with Root entry {
     nodes_data: list[dict[str, Any]] = [];
     edges_data: list[dict[str, str]] = [];
 

@@ -4,6 +4,7 @@ import from graph.nodes { FileNode }
 
 impl CompatibilityCheckerWalker.check_api_surface with FileNode entry {
     if self.allowed_nodes and jid(here) not in self.allowed_nodes {
+        visit [-->][?:FileNode];  # Keep traversing even for non-allowed nodes
         return;
     }
     self.traversal_path.append(jid(here));

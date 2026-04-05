@@ -4,9 +4,11 @@ import from graph.nodes { FileNode }
 
 impl SecurityAuditorWalker.analyze with FileNode entry {
     if self.allowed_nodes and jid(here) not in self.allowed_nodes {
+        visit [-->][?:FileNode];  # Keep traversing even for non-allowed nodes
         return;
     }
     if here.is_test {
+        visit [-->][?:FileNode];
         return;
     }
     self.traversal_path.append(jid(here));
