@@ -2499,4 +2499,25 @@ input {
     opacity: 1;
   }
 }
+
+/* ── Node animation keyframes ─────────────────────── */
+@keyframes gw-node-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(125,211,255,0.3); }
+  50%       { box-shadow: 0 0 14px 6px rgba(125,211,255,0.7); }
+}
+
+@keyframes gw-node-scan {
+  0%   { box-shadow: 0 0 0 0 rgba(125,211,255,0); opacity: 0.85; }
+  20%  { box-shadow: 0 0 22px 8px rgba(125,211,255,0.95); opacity: 1; }
+  100% { box-shadow: 0 0 0 0 rgba(125,211,255,0); opacity: 0.85; }
+}
+
+/* ── ReactFlow canvas container ───────────────────── */
+.gw-graph-canvas {
+  height: 400px;
+  width: 100%;
+  background: rgba(0,0,0,0.2);
+  border-radius: 8px;
+  overflow: hidden;
+}
 """;
