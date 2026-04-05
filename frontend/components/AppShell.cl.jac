@@ -43,6 +43,12 @@ def parse_repo_slug(raw: str) -> str {
     return t if t else "unknown/repo";
 }
 
+def safeLen(val: Any) -> int {
+    if not val { return 0; }
+    if not Array.isArray(val) { return 0; } # jac:ignore[E1032]
+    return len(val);
+}
+
 def:pub AppShell(mode: str) -> JsxElement {
     isContributor = mode == "contributor";
     has activeSection: str = "Overview",
@@ -1160,7 +1166,7 @@ def:pub AppShell(mode: str) -> JsxElement {
                                                     {analysisResult["overall_risk"] or "unknown"}
                                                 </span>
                                                 <span style={{"color": "rgba(220,239,255,0.5)", "fontSize": "12px"}}>
-                                                    {str(len(analysisResult["security_findings"] or [])) + " security · " + str(len(analysisResult["compatibility_issues"] or [])) + " compat"}
+                                                    {str(safeLen(analysisResult["security_findings"])) + " security findings · " + str(safeLen(analysisResult["compatibility_issues"])) + " compatibility issues"}
                                                 </span>
                                             </div>
                                             <p style={{"color": "rgba(220,239,255,0.82)", "fontSize": "13px", "marginBottom": "6px", "lineHeight": "1.5"}}>
