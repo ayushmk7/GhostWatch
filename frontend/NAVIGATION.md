@@ -1,4 +1,4 @@
-# GhostWatch — URL Navigation Guide
+# GhostWatch - URL Navigation Guide
 
 ## Running the App
 
@@ -22,7 +22,7 @@ Then open the URL the CLI prints (e.g. **Vite: http://localhost:8000/** → app 
 
 ## Routes
 
-### `/` — Landing Page
+### `/` - Landing Page
 
 **URL:** `/` (e.g. `http://localhost:5173/` in Vite)
 
@@ -42,7 +42,7 @@ The entry point. Explains what GhostWatch does, shows the cinematic hero with an
 
 ---
 
-### `/start` — Role selection
+### `/start` - Role selection
 
 **URL:** `/start`
 
@@ -57,7 +57,7 @@ Asks whether the visitor is a **Contributor** or **Lead maintainer**, then route
 
 ---
 
-### `/app/contributor` — Contributor home
+### `/app/contributor` - Contributor home
 
 Contributor-oriented shell: gap-style suggestions, doc/test cues, and lighter copy aligned with post-merge gap analysis (see `docs/system2design.md`). Same layout family as the maintainer view, different mock data and labels.
 
@@ -70,7 +70,7 @@ Contributor-oriented shell: gap-style suggestions, doc/test cues, and lighter co
 
 ---
 
-### `/app/maintainer` — Lead maintainer home
+### `/app/maintainer` - Lead maintainer home
 
 **URL:** `/app/maintainer`
 
@@ -106,7 +106,7 @@ Any other unrecognised path redirects back to `/` via `<Navigate to="/">`.
 
 - The app runs in **demo mode only** (`DEMO_MODE = True`)
 - Data is hardcoded in [frontend/mock_data.cl.jac](mock_data.cl.jac)
-- The graph canvas is intentionally blank — a live topology playback area reserved for the next build
+- The graph canvas is intentionally blank: a live topology playback area reserved for the next build
 - No real auth or backend in this slice; `./docs/system2design.md` describes how the backend will feed incidents and gap analysis later
 
 ---
@@ -115,10 +115,10 @@ Any other unrecognised path redirects back to `/` via `<Navigate to="/">`.
 
 | File | Purpose |
 |---|---|
-| `frontend/main.jac` | Client entry — `def:pub app()` (file-based `pages/` supply routes) |
-| `frontend/pages/` | File-based routes — `layout.jac`, `index.jac`, `start.jac`, `auth.jac`, `app/*`, `[...notFound].jac` |
-| `frontend/components/` | Reusable `.cl.jac` UI — shell, cards, glyphs, helpers |
+| `frontend/main.jac` | Client entry: `def:pub app()` (file-based `pages/` supply routes) |
+| `frontend/pages/` | File-based routes: `layout.jac`, `index.jac`, `start.jac`, `auth.jac`, `app/*`, `[...notFound].jac` |
+| `frontend/components/` | Reusable `.cl.jac` UI: shell, cards, glyphs, helpers |
 | `frontend/theme.cl.jac` | Global `APP_STYLES` CSS string |
 | `frontend/mock_data.cl.jac` | Demo constants (`DEMO_MODE`, metrics, feeds, cards) |
 | `frontend/init.jac` | Local package stub |
-| `jac.toml` | Project config — entry point `frontend/main.jac`, client plugin, serve settings |
+| `jac.toml` | Project config: entry point `frontend/main.jac`, client plugin, serve settings |

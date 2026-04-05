@@ -1,26 +1,5 @@
 cl glob:pub DEMO_MODE: bool = True;
 
-cl glob:pub LANDING_METRICS: list[dict[str, str]] = [
-         {
-             "value": "42",
-             "label": "open findings reviewed",
-             "detail": "Critical paths triaged before merge.",
-             "delay": "gw-stagger-3"
-         },
-         {
-             "value": "3",
-             "label": "suspicious dependency events",
-             "detail": "Flagged in demo telemetry this afternoon.",
-             "delay": "gw-stagger-4"
-         },
-         {
-             "value": "11.8s",
-             "label": "median verdict delivery",
-             "detail": "Mock pipeline tuned for live traversal.",
-             "delay": "gw-stagger-5"
-         }
-     ];
-
 cl glob:pub LANDING_FEATURES: list[dict[str, str]] = [
          {
              "title": "Graph-native awareness",
@@ -76,16 +55,16 @@ cl glob:pub FLOW_STEPS: list[dict[str, str]] = [
      ];
 
 cl glob:pub SIDEBAR_ITEMS: list[dict[str, str]] = [
-         {"icon": "OV", "label": "Overview", "meta": "Command surface"},
-         {"icon": "PR", "label": "PR Review", "meta": "Touched paths"},
-         {"icon": "DP", "label": "Dependency Alerts", "meta": "Manifest drift"},
-         {"icon": "IN", "label": "Incidents", "meta": "Escalation feed"},
-         {"icon": "ST", "label": "Settings", "meta": "Demo controls"}
+         {"label": "Overview", "meta": "Defense desk snapshot"},
+         {"label": "PR Review", "meta": "PRs under watch"},
+         {"label": "Dependency Alerts", "meta": "Manifest & supply chain"},
+         {"label": "Incidents", "meta": "Escalation feed"},
+         {"label": "Settings", "meta": "Desk & repositories"}
      ];
 
 cl glob:pub SUMMARY_CARDS: list[dict[str, str]] = [
          {
-             "label": "Open PRs Under Watch",
+             "label": "Open PRs (linked repo)",
              "value": "12",
              "delta": "+2 today",
              "tone": "frost",
@@ -150,23 +129,69 @@ cl glob:pub ATTENTION_ITEMS: list[dict[str, str]] = [
          {"title": "Comments ready to post", "value": "4 prepared"}
      ];
 
-cl glob:pub SESSION_NOTES: list[str] = [
-         "Demo mode is using local placeholder telemetry so the shell stays expressive before live walkers are connected.",
-         "The graph canvas is intentionally reserved for future playback and remains visually framed instead of mocked.",
-         "Every hardcoded value in this screen lives in centralized constants so backend walker responses can replace them later."
+cl glob:pub MAINTAINER_PR_REVIEW_ROWS: list[dict[str, str]] = [
+         {"pr": "#612", "title": "Harden client spawn retry + backoff", "author": "@dev-a", "risk": "High", "status": "Checks running"},
+         {"pr": "#608", "title": "Theme token bump for glass panels", "author": "@dev-b", "risk": "Low", "status": "Approved"},
+         {"pr": "#601", "title": "Walker manifest diff — new runtime dep", "author": "@dev-c", "risk": "Critical", "status": "Needs maintainer"}
+     ];
+
+cl glob:pub MAINTAINER_DEPENDENCY_ROWS: list[dict[str, str]] = [
+         {"package": "esbuild", "change": "0.19.x → 0.21.x", "severity": "Medium", "note": "Lockfile mismatch vs package.json"},
+         {"package": "openssl (transitive)", "change": "CVE advisory chain", "severity": "High", "note": "Awaiting upstream patch window"},
+         {"package": "internal graph-sdk", "change": "Unpinned git ref", "severity": "Low", "note": "Pin to tagged release before merge"}
+     ];
+
+cl glob:pub MAINTAINER_WATCHED_REPOS: list[dict[str, str]] = [
+         {"slug": "jaseci-labs/jaseci", "role": "Lead maintainer", "branch": "main", "pinned": "true"},
+         {"slug": "jaseci-labs/jaclang", "role": "Maintainer", "branch": "main", "pinned": "false"}
      ];
 
 cl glob:pub CONTRIBUTOR_SIDEBAR_ITEMS: list[dict[str, str]] = [
-         {"icon": "OV", "label": "Overview", "meta": "Your workspace"},
-         {"icon": "SG", "label": "Suggestions", "meta": "Gap analysis picks"},
-         {"icon": "DC", "label": "Docs & tests", "meta": "Coverage hints"},
-         {"icon": "AC", "label": "Activity", "meta": "Recent merges"},
-         {"icon": "ST", "label": "Settings", "meta": "Demo controls"}
+         {"label": "Overview", "meta": "Repository snapshot"},
+         {"label": "Suggestions", "meta": "Issues and AI picks"},
+         {"label": "Docs & tests", "meta": "Coverage and gaps"},
+         {"label": "Activity", "meta": "Recent merges"},
+         {"label": "Settings", "meta": "Account and repos"}
+     ];
+
+cl glob:pub CONTRIBUTOR_GITHUB_ISSUES: list[dict[str, str]] = [
+         {"id": "412", "title": "Flaky walker integration test on CI", "labels": "testing, ci", "state": "Open"},
+         {"id": "401", "title": "Document jac-client spawn timeout behavior", "labels": "documentation", "state": "Open"},
+         {"id": "388", "title": "Reduce bundle size for dashboard chunk", "labels": "performance", "state": "Open"}
+     ];
+
+cl glob:pub CONTRIBUTOR_AI_ISSUES: list[dict[str, str]] = [
+         {"id": "AI-1", "title": "Add regression test for graph export path", "reason": "Touches untested serialization branch"},
+         {"id": "AI-2", "title": "Expand API error table in operator guide", "reason": "New status codes shipped without examples"},
+         {"id": "AI-3", "title": "Refactor duplicate validation in signup form", "reason": "Small safe cleanup with high readability win"}
+     ];
+
+cl glob:pub CONTRIBUTOR_DOCS_ROWS: list[dict[str, str]] = [
+         {"path": "docs/contributing.md", "status": "Last updated 6d ago", "note": "Install steps match current CLI"},
+         {"path": "docs/architecture/overview.md", "status": "Stale section flagged", "note": "Walker lifecycle diagram references retired module"},
+         {"path": "README.md", "status": "OK", "note": "Badge links resolve"}
+     ];
+
+cl glob:pub CONTRIBUTOR_TEST_ROWS: list[dict[str, str]] = [
+         {"suite": "jac-client/router", "status": "Missing branch coverage", "note": "No test for nested dynamic segments"},
+         {"suite": "components/AppShell", "status": "Snapshot only", "note": "Add interaction test for sidebar"},
+         {"suite": "walkers/gap_analysis", "status": "Green", "note": "Core paths covered in integration run"}
+     ];
+
+cl glob:pub CONTRIBUTOR_ACTIVITY_ROWS: list[dict[str, str]] = [
+         {"when": "2h ago", "what": "Merge PR #612 — fix client spawn retry"},
+         {"when": "Yesterday", "what": "Opened draft PR — docs table styles"},
+         {"when": "Mon", "what": "Pushed — chore: bump theme tokens"}
+     ];
+
+cl glob:pub CONTRIBUTOR_SAVED_REPOS: list[dict[str, str]] = [
+         {"slug": "jaseci-labs/jaseci", "role": "Contributor", "pinned": "true"},
+         {"slug": "jaseci-labs/jaclang", "role": "Contributor", "pinned": "false"}
      ];
 
 cl glob:pub CONTRIBUTOR_SUMMARY_CARDS: list[dict[str, str]] = [
          {
-             "label": "Open suggestions",
+             "label": "Open issues (linked repo)",
              "value": "05",
              "delta": "from latest gap run",
              "tone": "frost",
@@ -195,30 +220,6 @@ cl glob:pub CONTRIBUTOR_SUMMARY_CARDS: list[dict[str, str]] = [
          }
      ];
 
-cl glob:pub CONTRIBUTOR_SUGGESTIONS: list[dict[str, str]] = [
-         {
-             "time": "10:22",
-             "severity": "medium",
-             "title": "Document public walker exports",
-             "detail": "A Jac module exposes graph walkers without an adjacent docs section in the design tree.",
-             "hint": "Open doc outline"
-         },
-         {
-             "time": "09:58",
-             "severity": "high",
-             "title": "Add tests for dependency diff walker",
-             "detail": "New manifest parsing paths are not linked to TestNode entries in the demo graph.",
-             "hint": "View test graph"
-         },
-         {
-             "time": "09:30",
-             "severity": "medium",
-             "title": "Fill stub in sandbox result view",
-             "detail": "Placeholder module under core UI still reads as incomplete_feature in gap ranking.",
-             "hint": "Claim slice"
-         }
-     ];
-
 cl glob:pub CONTRIBUTOR_WALKER_STATUS: list[dict[str, str]] = [
          {"name": "GapAnalysisWalker", "state": "Watching"},
          {"name": "Graph doc linker", "state": "Queued"},
@@ -229,10 +230,4 @@ cl glob:pub CONTRIBUTOR_ATTENTION_ITEMS: list[dict[str, str]] = [
          {"title": "Suggestions ready to pick up", "value": "3 open"},
          {"title": "Docs requested for PR #184", "value": "1 thread"},
          {"title": "Merge follow-ups", "value": "2 notes"}
-     ];
-
-cl glob:pub CONTRIBUTOR_SESSION_NOTES: list[str] = [
-         "Contributor view highlights gap-analysis output and documentation signals—placeholders until GapAnalysisWalker is live on your repo.",
-         "Suggestions map to System 2 contributor picks: a small, ranked set rather than the full maintainer escalation feed.",
-         "Switch to the lead maintainer home anytime via the marketing site path to compare control-room telemetry."
      ];

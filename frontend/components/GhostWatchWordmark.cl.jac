@@ -1,4 +1,4 @@
-def:pub GhostWatchWordmark() -> JsxElement {
+def:pub GhostWatchWordmark(showSubtitle: bool = True) -> JsxElement {
     return
         <div className="gw-wordmark">
             <div className="gw-mark" aria-hidden="true">
@@ -10,9 +10,10 @@ def:pub GhostWatchWordmark() -> JsxElement {
                 <span className="gw-wordmark-title">
                     GhostWatch
                 </span>
-                <span className="gw-wordmark-subtitle">
-                    Autonomous code defense
-                </span>
+                {showSubtitle and
+                    <span className="gw-wordmark-subtitle">
+                        Autonomous code defense
+                    </span>}
             </div>
         </div>;
 }
