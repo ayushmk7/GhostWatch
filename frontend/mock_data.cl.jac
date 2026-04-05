@@ -54,6 +54,7 @@ cl glob:pub FLOW_STEPS: list[dict[str, str]] = [
 
 cl glob:pub SIDEBAR_ITEMS: list[dict[str, str]] = [
     {"label": "Overview", "meta": "Defense desk snapshot"},
+    {"label": "Issue radar", "meta": "Open issues + AI triage"},
     {"label": "PR Review", "meta": "PRs under watch"},
     {"label": "Dependency Alerts", "meta": "Manifest & supply chain"},
     {"label": "Incidents", "meta": "Escalation feed"},
@@ -88,6 +89,13 @@ cl glob:pub SUMMARY_CARDS: list[dict[str, str]] = [
         "delta": "—",
         "tone": "amber",
         "spark": "6,36 42,26 80,24 122,20 160,18 198,15 236,11 274,10"
+    },
+    {
+        "label": "Open GitHub issues",
+        "value": "—",
+        "delta": "live from GraphStateWalker",
+        "tone": "frost",
+        "spark": "6,30 42,20 80,22 122,18 160,14 198,12 236,14 274,10"
     }
 ];
 
@@ -97,6 +105,25 @@ cl glob:pub CONTRIBUTOR_SIDEBAR_ITEMS: list[dict[str, str]] = [
     {"label": "Docs & tests", "meta": "Coverage and gaps"},
     {"label": "Activity", "meta": "Recent merges"},
     {"label": "Settings", "meta": "Account and repos"}
+];
+
+# Demo repo is fixed to jaseci-labs/jaseci. Live issue lists need GITHUB_TOKEN; digest needs ANTHROPIC_API_KEY.
+
+# Static briefing derived from the upstream README (Claude-preprocessed for the demo UI).
+cl glob:pub CLAUDE_JASECI_CONTEXT_PARAS: list[str] = [
+    (
+        "The official Jaseci monorepo hosts the Jac stack: jaclang (Jac to Python bytecode, JavaScript, and native code), "
+        "byllm for LLM integration, jac-client for full-stack apps with the npm/Vite ecosystem, jac-scale for deployment "
+        "(FastAPI, Redis, MongoDB, Kubernetes), jac-super, and jac-mcp. The convenience bundle installs with pip install jaseci."
+    ),
+    (
+        "Jac emphasizes AI-native Meaning Typed Programming, building backend and frontend in one language, graph-native domain "
+        "modeling with walkers, and cloud-style serving via jac start (with optional scaling flags). Documentation, tutorials, "
+        "and contribution guidelines live in the same repository."
+    ),
+    (
+        "GhostWatch scopes this demo to jaseci-labs/jaseci; GraphStateWalker streams open issues (capped at 100) and a TTL-cached Anthropic digest for maintainer triage."
+    )
 ];
 
 cl glob:pub CONTRIBUTOR_SUMMARY_CARDS: list[dict[str, str]] = [

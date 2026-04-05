@@ -5,6 +5,7 @@ import from ghostwatch_walker_imports { ghostwatch_walkers_registered }
 import from walkers.static.orchestrator { OrchestratorWalker }
 import from os { environ }
 import from integrations.github { validate_webhook_signature }
+import from dotenv { load_dotenv }
 
 walker:pub GitHubWebhookWalker {
     has event_type: str;
@@ -39,6 +40,7 @@ walker:pub GitHubWebhookWalker {
 }
 
 with entry {
+    _ = load_dotenv();
     _wl = ghostwatch_walkers_registered();
     print("GhostWatch System 1 ready.");
     print("Step 1: POST /walker/rebuild-graph to build the codebase graph.");

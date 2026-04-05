@@ -15,6 +15,12 @@ import from lib.manifest {
     impl_likely_has_conventional_test
 }
 import from lib.sandbox_exec { pip_requirements_file_line }
+import from lib.issue_intel {
+    issues_fingerprint_from_list,
+    issue_digest_cache_fresh,
+    issues_fetch_cache_fresh
+}
+import from lib.repo_demo_env { ghostwatch_demo_repo_url, ghostwatch_demo_repo_slug }
 
 test "normalize_package_name collapses separators" {
     assert normalize_package_name("Foo_Bar.baz") == "foo-bar-baz";
@@ -107,4 +113,24 @@ test "HMAC validation accepts correct signature" {
 test "HMAC validation rejects wrong signature" {
     payload = bytes("test_payload", "utf-8");
     assert not validate_webhook_signature(payload, "sha256=deadbeef", "my_secret");
+}
+
+test "ghostwatch demo repo url is fixed to jaseci" {
+    assert ghostwatch_demo_repo_url() == "https://github.com/jaseci-labs/jaseci";
+    assert ghostwatch_demo_repo_slug("https://github.com/jaseci-labs/jaseci") == "jaseci-labs/jaseci";
+}
+
+test "issues_fingerprint_from_list is stable for identical input" {
+    x = [{"number": 1, "updated_at": "a"}, {"number": 2, "updated_at": "b"}];
+    assert issues_fingerprint_from_list(x) == issues_fingerprint_from_list(x);
+}
+
+test "issue_digest_cache_fresh respects ttl" {
+    assert issue_digest_cache_fresh("1000", 1005, 10);
+    assert not issue_digest_cache_fresh("1000", 1020, 10);
+}
+
+test "issues_fetch_cache_fresh respects ttl" {
+    assert issues_fetch_cache_fresh("2000", 2005, 90);
+    assert not issues_fetch_cache_fresh("2000", 2100, 90);
 }

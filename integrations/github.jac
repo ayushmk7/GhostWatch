@@ -46,3 +46,6 @@ def find_open_pr_for_branch(repo_name: str, head_branch: str) -> str;
 def get_default_branch(repo_name: str) -> str;
 
 def get_branch_head_sha(repo_name: str, branch: str) -> str;
+
+# Open issues only (excludes pull requests). Sorted by GitHub updated desc; caller caps count.
+def list_open_issues(repo_name: str, limit: int) -> list[dict];

@@ -11,7 +11,8 @@ cl import from ..mock_data {
     SIDEBAR_ITEMS,
     SUMMARY_CARDS,
     CONTRIBUTOR_SIDEBAR_ITEMS,
-    CONTRIBUTOR_SUMMARY_CARDS
+    CONTRIBUTOR_SUMMARY_CARDS,
+    CLAUDE_JASECI_CONTEXT_PARAS
 }
 
 def count_sug_by_type(sugs: list, kind: str) -> int {
@@ -24,7 +25,10 @@ def count_sug_by_type(sugs: list, kind: str) -> int {
     return acc;
 }
 
-def maintainer_card_value(label: str, inc: object) -> str {
+def maintainer_card_value(label: str, inc: object, gh_issue_count: int) -> str {
+    if label == "Open GitHub issues" {
+        return str(gh_issue_count);
+    }
     if label == "Critical Findings" {
         if inc and ("risk_level" in inc) {
             return str(inc["risk_level"]);
@@ -52,9 +56,9 @@ def maintainer_card_delta(label: str, inc: object) -> str {
     return "—";
 }
 
-def contributor_card_value(label: str, sugs: list) -> str {
+def contributor_card_value(label: str, sugs: list, gh_issue_count: int) -> str {
     if label == "Open issues (linked repo)" {
-        return str(len(sugs));
+        return str(gh_issue_count);
     }
     if label == "Untested paths" {
         return str(count_sug_by_type(sugs, "missing_tests"));
@@ -67,31 +71,35 @@ def contributor_card_value(label: str, sugs: list) -> str {
 
 def contributor_card_delta(label: str, sugs: list) -> str {
     if label == "Open issues (linked repo)" {
-        return "from latest gap run";
+        return "from GraphStateWalker";
     }
     return "—";
 }
 
-def parse_repo_slug(raw: str) -> str {
-    t = raw.strip();
-    t = t.replace("https://github.com/", "");
-    t = t.replace("http://github.com/", "");
-    t = t.replace("github.com/", "");
-    t = t.strip().strip("/");
-    return t if t else "unknown/repo";
-}
-
 def:pub AppShell(mode: str) -> JsxElement {
     isContributor = mode == "contributor";
-    has activeSection: str = "Overview",
-        repoInput: str = "",
-        repoLinked: bool = False,
-        repoDisplay: str = "";
+    has activeSection: str = "Overview";
 
     gs = useGraphState();
     graphPayload = None;
     if gs and ("report" in gs) {
         graphPayload = gs["report"];
+    }
+    demoRepoUrl = "https://github.com/jaseci-labs/jaseci";
+    repoDisplay = "jaseci-labs/jaseci";
+    if graphPayload {
+        if "demo_repo_url" in graphPayload {
+            v = str(graphPayload["demo_repo_url"]).strip();
+            if v {
+                demoRepoUrl = v;
+            }
+        }
+        if "demo_repo_slug" in graphPayload {
+            s = str(graphPayload["demo_repo_slug"]).strip();
+            if s {
+                repoDisplay = s;
+            }
+        }
     }
     latestIncident = None;
     if graphPayload and ("latest_incident" in graphPayload) {
@@ -106,6 +114,32 @@ def:pub AppShell(mode: str) -> JsxElement {
         gapSuggestions = latestGap["suggestions"];
     }
 
+    githubIssuesList = [];
+    if graphPayload and ("github_issues" in graphPayload) {
+        gi = graphPayload["github_issues"];
+        if gi {
+            githubIssuesList = gi;
+        }
+    }
+    gh_issue_count = len(githubIssuesList);
+
+    issueDigest = None;
+    if graphPayload and ("issue_digest" in graphPayload) {
+        issueDigest = graphPayload["issue_digest"];
+    }
+    issues_error_msg = "";
+    if graphPayload and ("issues_error" in graphPayload) {
+        issues_error_msg = str(graphPayload["issues_error"]);
+    }
+    digest_error_msg = "";
+    if graphPayload and ("digest_error" in graphPayload) {
+        digest_error_msg = str(graphPayload["digest_error"]);
+    }
+    issue_digest_summary = "";
+    if issueDigest and ("summary" in issueDigest) {
+        issue_digest_summary = str(issueDigest["summary"]);
+    }
+
     sidebarItems = CONTRIBUTOR_SIDEBAR_ITEMS if isContributor else SIDEBAR_ITEMS;
     baseSummary = SUMMARY_CARDS;
     if isContributor {
@@ -115,9 +149,9 @@ def:pub AppShell(mode: str) -> JsxElement {
     for card in baseSummary {
         lab = str(card["label"]);
         nv = (
-            maintainer_card_value(lab, latestIncident)
+            maintainer_card_value(lab, latestIncident, gh_issue_count)
             if not isContributor
-            else contributor_card_value(lab, gapSuggestions)
+            else contributor_card_value(lab, gapSuggestions, gh_issue_count)
         );
         nd = (
             maintainer_card_delta(lab, latestIncident)
@@ -220,17 +254,88 @@ def:pub AppShell(mode: str) -> JsxElement {
 
     prRows = [];
     ghIssueRows = [];
-    actRows = [];
-    contribAiRows = [];
-    for s in gapSuggestions {
-        if s {
-            contribAiRows.append(
+    for row in githubIssuesList {
+        if row {
+            ghIssueRows.append(
                 {
-                    "id": "·",
-                    "title": str(s["title"]) if "title" in s else "—",
-                    "reason": str(s["description"]) if "description" in s else "—"
+                    "id": str(row["id"]) if "id" in row else "—",
+                    "title": str(row["title"]) if "title" in row else "—",
+                    "labels": str(row["labels"]) if "labels" in row else "—",
+                    "state": str(row["state"]) if "state" in row else "open"
                 }
             );
+        }
+    }
+    actRows = [];
+    maintainerAiRows = [];
+    if issueDigest and ("recommended" in issueDigest) {
+        mrecs = issueDigest["recommended"];
+        if mrecs {
+            for r in mrecs {
+                if r {
+                    mrid = "—";
+                    if "issue_number" in r {
+                        mrid = "#" + str(r["issue_number"]);
+                    } elif "number" in r {
+                        mrid = "#" + str(r["number"]);
+                    }
+                    maintainerAiRows.append(
+                        {
+                            "id": mrid,
+                            "title": str(r["title"]) if "title" in r else "—",
+                            "reason": str(r["reason"]) if "reason" in r else "—"
+                        }
+                    );
+                }
+            }
+        }
+    }
+    contribAiRows = [];
+    for x in maintainerAiRows {
+        if x {
+            contribAiRows.append(x);
+        }
+    }
+    if len(contribAiRows) == 0 {
+        for s in gapSuggestions {
+            if s {
+                contribAiRows.append(
+                    {
+                        "id": "·",
+                        "title": str(s["title"]) if "title" in s else "—",
+                        "reason": str(s["description"]) if "description" in s else "—"
+                    }
+                );
+            }
+        }
+    }
+
+    clusterRows = [];
+    if issueDigest and ("clusters" in issueDigest) {
+        cl = issueDigest["clusters"];
+        if cl {
+            for c in cl {
+                if c {
+                    nums = "";
+                    if "issue_numbers" in c {
+                        ins = c["issue_numbers"];
+                        if ins {
+                            parts = [];
+                            for x in ins {
+                                parts.append(str(x));
+                            }
+                            nums = ", ".join(parts);
+                        }
+                    }
+                    clusterRows.append(
+                        {
+                            "name": str(c["name"]) if "name" in c else "—",
+                            "note": str(c["note"]) if "note" in c else "—",
+                            "nums": nums
+                        }
+                    );
+                }
+            }
         }
     }
     docGapRows = [];
@@ -260,8 +365,21 @@ def:pub AppShell(mode: str) -> JsxElement {
             );
         }
     }
-    watchedRepos = [];
-    savedRepos = [];
+    watchedRepos = [
+        {
+            "slug": "jaseci-labs/jaseci",
+            "role": "Lead maintainer",
+            "branch": "main",
+            "pinned": "true"
+        }
+    ];
+    savedRepos = [
+        {
+            "slug": "jaseci-labs/jaseci",
+            "role": "Contributor",
+            "pinned": "true"
+        }
+    ];
 
     notifCount = "";
     if latestIncident {
@@ -272,74 +390,74 @@ def:pub AppShell(mode: str) -> JsxElement {
         activeSection = label;
     }
 
-    def linkRepository() -> None {
-        if repoInput.strip() == "" {
-            return;
-        }
-        repoDisplay = parse_repo_slug(repoInput);
-        repoLinked = True;
-    }
-
-    panelTitle = "Connect a GitHub repository";
+    panelTitle = "Overview · " + repoDisplay;
     topDescription = (
-        "Paste a repository URL to scope this workspace. Overview and every tab stay limited to that project."
+        "Live posture for "
+            + repoDisplay
+            + ": pull requests under watch, walker signals, and maintainer-sized attention items."
     );
-    searchPlaceholder = "";
-    analysisButtonLabel = "Connect";
+    searchPlaceholder = "Filter desk (demo)";
+    analysisButtonLabel = "Refresh desk";
 
-    if repoLinked {
+    if isContributor {
         analysisButtonLabel = "Run Analysis";
-        if isContributor {
-            if activeSection == "Overview" {
-                panelTitle = "Overview · " + repoDisplay;
+        if activeSection == "Overview" {
+            panelTitle = "Overview · " + repoDisplay;
+            topDescription = (
+                "Open work, documentation pressure, and movement for "
+                    + repoDisplay
+                    + " only — not your whole GitHub account."
+            );
+            analysisButtonLabel = "Refresh overview";
+        } else {
+            if activeSection == "Suggestions" {
+                panelTitle = "Suggestions · " + repoDisplay;
                 topDescription = (
-                    "Open work, documentation pressure, and movement for "
-                        + repoDisplay
-                        + " only — not your whole GitHub account."
+                    "GitHub issues from the repository alongside AI-ranked starter tasks for the same codebase."
                 );
-                analysisButtonLabel = "Refresh overview";
+                analysisButtonLabel = "Refresh suggestions";
             } else {
-                if activeSection == "Suggestions" {
-                    panelTitle = "Suggestions · " + repoDisplay;
+                if activeSection == "Docs & tests" {
+                    panelTitle = "Docs & tests · " + repoDisplay;
                     topDescription = (
-                        "GitHub issues from the repository alongside AI-ranked starter tasks for the same codebase."
+                        "Where documentation and automated tests look thin or stale inside "
+                            + repoDisplay
+                            + "."
                     );
-                    analysisButtonLabel = "Refresh suggestions";
+                    analysisButtonLabel = "Rescan docs & tests";
                 } else {
-                    if activeSection == "Docs & tests" {
-                        panelTitle = "Docs & tests · " + repoDisplay;
+                    if activeSection == "Activity" {
+                        panelTitle = "Activity · " + repoDisplay;
                         topDescription = (
-                            "Where documentation and automated tests look thin or stale inside "
-                                + repoDisplay
-                                + "."
+                            "Recent merges and pushes GhostWatch has seen on " + repoDisplay + "."
                         );
-                        analysisButtonLabel = "Rescan docs & tests";
+                        analysisButtonLabel = "Refresh activity";
                     } else {
-                        if activeSection == "Activity" {
-                            panelTitle = "Activity · " + repoDisplay;
-                            topDescription = (
-                                "Recent merges and pushes GhostWatch has seen on " + repoDisplay + "."
-                            );
-                            analysisButtonLabel = "Refresh activity";
-                        } else {
-                            panelTitle = "Settings";
-                            topDescription = (
-                                "Notification defaults and every repository you have added to your contributor workspace."
-                            );
-                            analysisButtonLabel = "Save changes";
-                        }
+                        panelTitle = "Settings";
+                        topDescription = (
+                            "Notification defaults and every repository you have added to your contributor workspace."
+                        );
+                        analysisButtonLabel = "Save changes";
                     }
                 }
             }
+        }
+    } else {
+        if activeSection == "Overview" {
+            panelTitle = "Overview · " + repoDisplay;
+            topDescription = (
+                "Live posture for "
+                    + repoDisplay
+                    + ": pull requests under watch, walker signals, and maintainer-sized attention items."
+            );
+            analysisButtonLabel = "Refresh desk";
         } else {
-            if activeSection == "Overview" {
-                panelTitle = "Overview · " + repoDisplay;
+            if activeSection == "Issue radar" {
+                panelTitle = "Issue radar · " + repoDisplay;
                 topDescription = (
-                    "Live posture for "
-                        + repoDisplay
-                        + ": pull requests under watch, walker signals, and maintainer-sized attention items."
+                    "Up to 100 open GitHub issues (non-PR) plus a TTL-cached Anthropic digest: fix-soon recommendations and themed backlog clusters."
                 );
-                analysisButtonLabel = "Refresh desk";
+                analysisButtonLabel = "Refresh issues";
             } else {
                 if activeSection == "PR Review" {
                     panelTitle = "PR Review · " + repoDisplay;
@@ -467,43 +585,8 @@ def:pub AppShell(mode: str) -> JsxElement {
                             </div>
                         </div>
                     </aside>
-                    <div
-                        className={
-                            "gw-workspace"
-                                + (" gw-workspace--connect" if not repoLinked else "")
-                        }
-                    >
-                        {not repoLinked and
-                            <div className="gw-repo-connect gw-glass-panel gw-fade-up gw-stagger-2">
-                                <h2 className="gw-repo-connect-title">
-                                    Link your repository
-                                </h2>
-                                <p className="gw-repo-connect-lede">
-                                    Enter a GitHub URL (for example
-                                    <code className="gw-repo-connect-code">
-                                        {" "}https://github.com/org/project
-                                    </code>
-                                    ). The overview and every tab below stay scoped to that repository.
-                                </p>
-                                <div className="gw-repo-connect-row">
-                                    <input
-                                        className="gw-repo-connect-input"
-                                        type="url"
-                                        placeholder=""
-                                        value={repoInput}
-                                        onChange={lambda e: ChangeEvent { repoInput = e.target.value; }}
-                                    />
-                                    <button
-                                        type="button"
-                                        className="gw-glass-button gw-button-primary"
-                                        onClick={lambda -> None { linkRepository(); }}
-                                    >
-                                        Continue
-                                    </button>
-                                </div>
-                            </div>}
-                        {repoLinked and
-                            <header
+                    <div className="gw-workspace">
+                        <header
                                 className="gw-topbar gw-glass-panel gw-fade-up gw-stagger-2"
                             >
                                 <div className="gw-topbar-heading">
@@ -568,6 +651,8 @@ def:pub AppShell(mode: str) -> JsxElement {
                                         <input
                                             className="gw-search-input"
                                             placeholder={searchPlaceholder}
+                                            readOnly={True}
+                                            aria-label="Demo search (read-only)"
                                         />
                                     </div>
                                     <button
@@ -607,8 +692,8 @@ def:pub AppShell(mode: str) -> JsxElement {
                                         {analysisButtonLabel}
                                     </button>
                                 </div>
-                            </header>}
-                        {isContributor and repoLinked and activeSection == "Suggestions" and
+                            </header>
+                        {isContributor and activeSection == "Suggestions" and
                             <div className="gw-main-grid gw-main-grid--single gw-fade-up gw-stagger-3">
                                 <main className="gw-main-column">
                                     <section className="gw-table-panel gw-glass-panel">
@@ -691,7 +776,7 @@ def:pub AppShell(mode: str) -> JsxElement {
                                     </section>
                                 </main>
                             </div>}
-                        {isContributor and repoLinked and activeSection == "Docs & tests" and
+                        {isContributor and activeSection == "Docs & tests" and
                             <div className="gw-main-grid gw-main-grid--single gw-fade-up gw-stagger-3">
                                 <main className="gw-main-column">
                                     <section className="gw-table-panel gw-glass-panel">
@@ -768,7 +853,7 @@ def:pub AppShell(mode: str) -> JsxElement {
                                     </section>
                                 </main>
                             </div>}
-                        {isContributor and repoLinked and activeSection == "Activity" and
+                        {isContributor and activeSection == "Activity" and
                             <div className="gw-main-grid gw-main-grid--single gw-fade-up gw-stagger-3">
                                 <main className="gw-main-column">
                                     <section className="gw-table-panel gw-glass-panel">
@@ -803,7 +888,7 @@ def:pub AppShell(mode: str) -> JsxElement {
                                     </section>
                                 </main>
                             </div>}
-                        {isContributor and repoLinked and activeSection == "Settings" and
+                        {isContributor and activeSection == "Settings" and
                             <div className="gw-main-grid gw-main-grid--single gw-fade-up gw-stagger-3">
                                 <main className="gw-main-column gw-settings-column">
                                     <section className="gw-settings-block gw-glass-panel">
@@ -919,7 +1004,89 @@ def:pub AppShell(mode: str) -> JsxElement {
                                     </section>
                                 </main>
                             </div>}
-                        {(not isContributor) and repoLinked and activeSection == "PR Review" and
+                        {(not isContributor) and activeSection == "Issue radar" and
+                            <div className="gw-main-grid gw-main-grid--single gw-fade-up gw-stagger-3">
+                                <main className="gw-main-column">
+                                    {issues_error_msg and <p className="gw-settings-hint" style={{"maxWidth": "72ch", "marginBottom": "12px"}}>{issues_error_msg}</p>}
+                                    {digest_error_msg and <p className="gw-settings-hint" style={{"maxWidth": "72ch", "marginBottom": "12px"}}>Digest error: {digest_error_msg}</p>}
+                                    {issue_digest_summary and <p className="gw-settings-hint" style={{"maxWidth": "72ch", "marginBottom": "16px", "lineHeight": "1.55"}}><strong>Digest summary.</strong> {issue_digest_summary}</p>}
+                                    <section className="gw-table-panel gw-glass-panel">
+                                        <h2 className="gw-table-panel-title">
+                                            Open issues (non-PR, newest first, max 100)
+                                        </h2>
+                                        <table className="gw-data-table">
+                                            <thead>
+                                                <tr>
+                                                    <th>#</th>
+                                                    <th>Title</th>
+                                                    <th>Labels</th>
+                                                    <th>State</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {[
+                                                    <tr key={row["id"]}>
+                                                        <td>{row["id"]}</td>
+                                                        <td>{row["title"]}</td>
+                                                        <td>{row["labels"]}</td>
+                                                        <td>{row["state"]}</td>
+                                                    </tr>
+                                                    for row in ghIssueRows
+                                                ]}
+                                            </tbody>
+                                        </table>
+                                    </section>
+                                    <section className="gw-table-panel gw-glass-panel">
+                                        <h2 className="gw-table-panel-title">
+                                            Recommended to fix soon (AI)
+                                        </h2>
+                                        <table className="gw-data-table">
+                                            <thead>
+                                                <tr>
+                                                    <th>ID</th>
+                                                    <th>Issue</th>
+                                                    <th>Why</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {[
+                                                    <tr key={row["id"] + row["title"]}>
+                                                        <td>{row["id"]}</td>
+                                                        <td>{row["title"]}</td>
+                                                        <td>{row["reason"]}</td>
+                                                    </tr>
+                                                    for row in maintainerAiRows
+                                                ]}
+                                            </tbody>
+                                        </table>
+                                    </section>
+                                    <section className="gw-table-panel gw-glass-panel">
+                                        <h2 className="gw-table-panel-title">
+                                            Themed backlog clusters
+                                        </h2>
+                                        <table className="gw-data-table">
+                                            <thead>
+                                                <tr>
+                                                    <th>Theme</th>
+                                                    <th>Note</th>
+                                                    <th>Issue numbers</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {[
+                                                    <tr key={row["name"] + row["nums"]}>
+                                                        <td>{row["name"]}</td>
+                                                        <td>{row["note"]}</td>
+                                                        <td>{row["nums"]}</td>
+                                                    </tr>
+                                                    for row in clusterRows
+                                                ]}
+                                            </tbody>
+                                        </table>
+                                    </section>
+                                </main>
+                            </div>}
+                        {(not isContributor) and activeSection == "PR Review" and
                             <div className="gw-main-grid gw-main-grid--single gw-fade-up gw-stagger-3">
                                 <main className="gw-main-column">
                                     <section className="gw-table-panel gw-glass-panel">
@@ -972,7 +1139,7 @@ def:pub AppShell(mode: str) -> JsxElement {
                                     </section>
                                 </main>
                             </div>}
-                        {(not isContributor) and repoLinked and activeSection == "Dependency Alerts" and
+                        {(not isContributor) and activeSection == "Dependency Alerts" and
                             <div className="gw-main-grid gw-main-grid--single gw-fade-up gw-stagger-3">
                                 <main className="gw-main-column">
                                     <section className="gw-table-panel gw-glass-panel">
@@ -1019,7 +1186,7 @@ def:pub AppShell(mode: str) -> JsxElement {
                                     </section>
                                 </main>
                             </div>}
-                        {(not isContributor) and repoLinked and activeSection == "Incidents" and
+                        {(not isContributor) and activeSection == "Incidents" and
                             <div className="gw-main-grid gw-main-grid--single gw-fade-up gw-stagger-3">
                                 <main className="gw-main-column">
                                     <section className="gw-table-panel gw-glass-panel">
@@ -1072,7 +1239,7 @@ def:pub AppShell(mode: str) -> JsxElement {
                                     </section>
                                 </main>
                             </div>}
-                        {(not isContributor) and repoLinked and activeSection == "Settings" and
+                        {(not isContributor) and activeSection == "Settings" and
                             <div className="gw-main-grid gw-main-grid--single gw-fade-up gw-stagger-3">
                                 <main className="gw-main-column gw-settings-column">
                                     <section className="gw-settings-block gw-glass-panel">
@@ -1194,9 +1361,44 @@ def:pub AppShell(mode: str) -> JsxElement {
                                     </section>
                                 </main>
                             </div>}
-                        {isContributor and repoLinked and activeSection == "Overview" and
+                        {isContributor and activeSection == "Overview" and
                             <div className="gw-main-grid gw-fade-up gw-stagger-3">
                                 <main className="gw-main-column">
+                                    <section className="gw-table-panel gw-glass-panel gw-fade-up gw-stagger-2">
+                                        <h2 className="gw-table-panel-title">
+                                            Anthropic-assisted repository briefing
+                                        </h2>
+                                        <p className="gw-repo-connect-lede" style={{"marginBottom": "12px"}}>
+                                            Demo scope:&nbsp;
+                                            <a
+                                                href={demoRepoUrl}
+                                                target="_blank"
+                                                rel="noreferrer"
+                                                className="gw-role-back"
+                                            >
+                                                {demoRepoUrl}
+                                            </a>
+                                        </p>
+                                        {issues_error_msg and <p className="gw-settings-hint" style={{"maxWidth": "72ch", "marginBottom": "10px"}}>{issues_error_msg}</p>}
+                                        {digest_error_msg and <p className="gw-settings-hint" style={{"maxWidth": "72ch", "marginBottom": "10px"}}>Digest error: {digest_error_msg}</p>}
+                                        {issue_digest_summary and <p className="gw-settings-hint" style={{"maxWidth": "72ch", "marginBottom": "10px", "lineHeight": "1.55"}}><strong>Live issue digest.</strong> {issue_digest_summary}</p>}
+                                        {[
+                                            <p
+                                                key={para}
+                                                className="gw-settings-hint"
+                                                style={
+                                                    {
+                                                        "maxWidth": "72ch",
+                                                        "marginBottom": "10px",
+                                                        "lineHeight": "1.55"
+                                                    }
+                                                }
+                                            >
+                                                {para}
+                                            </p>
+                                            for para in CLAUDE_JASECI_CONTEXT_PARAS
+                                        ]}
+                                    </section>
                                     <section className="gw-summary-grid">
                                         {[<SummaryCard key={card["label"]} card={card}/> for card in summaryCards]}
                                     </section>
@@ -1256,9 +1458,44 @@ def:pub AppShell(mode: str) -> JsxElement {
                                     </section>
                                 </aside>
                             </div>}
-                        {(not isContributor) and repoLinked and activeSection == "Overview" and
+                        {(not isContributor) and activeSection == "Overview" and
                             <div className="gw-main-grid gw-fade-up gw-stagger-3">
                                 <main className="gw-main-column">
+                                    <section className="gw-table-panel gw-glass-panel gw-fade-up gw-stagger-2">
+                                        <h2 className="gw-table-panel-title">
+                                            Anthropic-assisted repository briefing
+                                        </h2>
+                                        <p className="gw-repo-connect-lede" style={{"marginBottom": "12px"}}>
+                                            Demo scope:&nbsp;
+                                            <a
+                                                href={demoRepoUrl}
+                                                target="_blank"
+                                                rel="noreferrer"
+                                                className="gw-role-back"
+                                            >
+                                                {demoRepoUrl}
+                                            </a>
+                                        </p>
+                                        {issues_error_msg and <p className="gw-settings-hint" style={{"maxWidth": "72ch", "marginBottom": "10px"}}>{issues_error_msg}</p>}
+                                        {digest_error_msg and <p className="gw-settings-hint" style={{"maxWidth": "72ch", "marginBottom": "10px"}}>Digest error: {digest_error_msg}</p>}
+                                        {issue_digest_summary and <p className="gw-settings-hint" style={{"maxWidth": "72ch", "marginBottom": "10px", "lineHeight": "1.55"}}><strong>Live issue digest.</strong> {issue_digest_summary}</p>}
+                                        {[
+                                            <p
+                                                key={para}
+                                                className="gw-settings-hint"
+                                                style={
+                                                    {
+                                                        "maxWidth": "72ch",
+                                                        "marginBottom": "10px",
+                                                        "lineHeight": "1.55"
+                                                    }
+                                                }
+                                            >
+                                                {para}
+                                            </p>
+                                            for para in CLAUDE_JASECI_CONTEXT_PARAS
+                                        ]}
+                                    </section>
                                     <section className="gw-summary-grid">
                                         {[<SummaryCard key={card["label"]} card={card}/> for card in summaryCards]}
                                     </section>

@@ -230,3 +230,51 @@ impl get_branch_head_sha(repo_name: str, branch: str) -> str {
         return "";
     }
 }
+
+impl list_open_issues(repo_name: str, limit: int) -> list[dict] {
+    g = Github(environ.get("GITHUB_TOKEN", ""));
+    try {
+        repo = g.get_repo(repo_name);
+        out: list[dict] = [];
+        n = 0;
+        lim = int(limit) if limit else 100;
+        for issue in repo.get_issues(state="open", sort="updated", direction="desc") {
+            pr = getattr(issue, "pull_request", None);
+            if pr is not None {
+                continue;
+            }
+            labels: list[str] = [];
+            for lb in issue.labels {
+                labels.append(str(getattr(lb, "name", "")));
+            }
+            upd = "";
+            uat = getattr(issue, "updated_at", None);
+            if uat {
+                iso = getattr(uat, "isoformat", None);
+                if iso {
+                    upd = str(iso());
+                } else {
+                    upd = str(uat);
+                }
+            }
+            out.append(
+                {
+                    "number": int(getattr(issue, "number", 0)),
+                    "title": str(getattr(issue, "title", "") or ""),
+                    "html_url": str(getattr(issue, "html_url", "") or ""),
+                    "state": str(getattr(issue, "state", "open") or "open"),
+                    "labels": labels,
+                    "updated_at": upd
+                }
+            );
+            n += 1;
+            if n >= lim {
+                break;
+            }
+        }
+        return out;
+    } except Exception as e { # jac:ignore[W2052]
+        print(f"list_open_issues: {e}");
+        return [];
+    }
+}

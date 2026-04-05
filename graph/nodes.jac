@@ -64,3 +64,12 @@ node GapAnalysisNode {
     has created_at: str;
     has suggestions: list = [];
 }
+
+node IssueIntelligenceNode {
+    has repo_full_name: str;
+    has issues_fetched_at: str;
+    has issues_snapshot: list = [];
+    has issues_fingerprint: str = "";
+    has digest: dict = {};
+    has digest_fetched_at: str = "";
+}
