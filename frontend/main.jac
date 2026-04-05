@@ -1,9 +1,9 @@
-import from requests { post }
+import requests;
 import from typing { Any }
 
 walker:pub GraphStateProxy {
-    can fetch with root entry {
-        resp: Any = post(
+    can fetch with Root entry {
+        resp: Any = requests.post(
             "http://localhost:8080/walker/GraphStateWalker",
             json={}
         );
@@ -14,8 +14,8 @@ walker:pub GraphStateProxy {
 walker:pub OrchestratorProxy {
     has pr_url: str;
 
-    can run with root entry {
-        resp: Any = post(
+    can run with Root entry {
+        resp: Any = requests.post(
             "http://localhost:8080/walker/OrchestratorWalker",
             json={"pr_url": self.pr_url}
         );
