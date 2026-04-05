@@ -108,7 +108,7 @@ impl OrchestratorWalker._run_compat(
 }
 
 impl OrchestratorWalker._run_blast(start_node: FileNode, changed_paths: list[str]) -> dict[str, Any] {
-    result: Any = start_node spawn BlastRadiusMapperWalker(changed_nodes=changed_paths);
+    result: Any = root() spawn BlastRadiusMapperWalker(changed_nodes=changed_paths);
     affected: Any = getattr(result, "affected_nodes", []);
     return {
         "affected_nodes": affected,

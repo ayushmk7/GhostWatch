@@ -2502,14 +2502,14 @@ input {
 
 /* ── Node animation keyframes ─────────────────────── */
 @keyframes gw-node-pulse {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(125,211,255,0.3); }
-  50%       { box-shadow: 0 0 14px 6px rgba(125,211,255,0.7); }
+  0%, 100% { filter: drop-shadow(0 0 0px rgba(125,211,255,0)); }
+  50%       { filter: drop-shadow(0 0 10px rgba(125,211,255,0.85)); }
 }
 
 @keyframes gw-node-scan {
-  0%   { box-shadow: 0 0 0 0 rgba(125,211,255,0); opacity: 0.85; }
-  20%  { box-shadow: 0 0 22px 8px rgba(125,211,255,0.95); opacity: 1; }
-  100% { box-shadow: 0 0 0 0 rgba(125,211,255,0); opacity: 0.85; }
+  0%   { filter: drop-shadow(0 0 0px rgba(125,211,255,0)); opacity: 0.85; }
+  20%  { filter: drop-shadow(0 0 18px rgba(125,211,255,1)); opacity: 1; }
+  100% { filter: drop-shadow(0 0 0px rgba(125,211,255,0)); opacity: 0.85; }
 }
 
 /* ── ReactFlow canvas container ───────────────────── */
@@ -2519,5 +2519,60 @@ input {
   background: rgba(0,0,0,0.2);
   border-radius: 8px;
   overflow: hidden;
+  position: relative;
+}
+
+/* ── Node tooltip ───────────────────────────────────── */
+.gw-node-tooltip {
+  position: absolute;
+  bottom: 12px;
+  right: 12px;
+  z-index: 20;
+  background: rgba(8,20,40,0.88);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(125,211,255,0.28);
+  border-radius: 8px;
+  padding: 10px 13px;
+  min-width: 200px;
+  pointer-events: none;
+}
+
+.gw-node-tooltip-path {
+  font-size: 10px;
+  color: rgba(125,211,255,0.75);
+  font-family: var(--gw-font-mono, monospace);
+  word-break: break-all;
+  margin-bottom: 8px;
+  line-height: 1.4;
+}
+
+.gw-node-tooltip-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-top: 4px;
+}
+
+.gw-node-tooltip-label {
+  font-size: 10px;
+  color: rgba(220,239,255,0.72);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.gw-node-tooltip-value {
+  font-size: 11px;
+  color: #ffffff;
+  font-weight: 500;
+}
+
+.gw-node-tooltip-value--high {
+  color: rgba(239,68,68,0.9);
+}
+
+.gw-node-tooltip-value--med {
+  color: rgba(251,191,36,0.9);
 }
 """;

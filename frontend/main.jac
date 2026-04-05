@@ -8,7 +8,7 @@ walker:pub GraphStateProxy {
             json={"latest_pr": None, "latest_incident": None, "latest_gap": None}
         );
         body: Any = resp.json();
-        inner: Any = body.get("reports", []);
+        inner: Any = body.get("data", {}).get("reports", []);
         if len(inner) > 0 {
             report inner[0];
         }
@@ -24,7 +24,7 @@ walker:pub OrchestratorProxy {
             json={"pr_url": self.pr_url}
         );
         body: Any = resp.json();
-        inner: Any = body.get("reports", []);
+        inner: Any = body.get("data", {}).get("reports", []);
         if len(inner) > 0 {
             report inner[0];
         }

@@ -2,6 +2,10 @@
 
 import from graph.nodes { FileNode }
 
+impl BlastRadiusMapperWalker.start_from_root with Root entry {
+    visit [-->][?:FileNode];
+}
+
 impl BlastRadiusMapperWalker.map_blast with FileNode entry {
     is_changed = here.path in self.changed_nodes;
     is_affected = self.current_hop > 0;

@@ -46,9 +46,7 @@ def parse_repo_slug(raw: str) -> str {
 def:pub AppShell(mode: str) -> JsxElement {
     isContributor = mode == "contributor";
     has activeSection: str = "Overview",
-        repoInput: str = "",
-        repoLinked: bool = False,
-        repoDisplay: str = "",
+        repoDisplay: str = parse_repo_slug(DEMO_REPO_URL),
         graphState: dict | None = None,
         analysisLoading: bool = False,
         analysisResult: dict | None = None,
@@ -60,7 +58,7 @@ def:pub AppShell(mode: str) -> JsxElement {
             {"method": "POST", "headers": {"Content-Type": "application/json"}, "body": "{}"}
         );
         data: Any = await res.json(); # jac:ignore[E1032]
-        reports: Any = data["reports"] or []; # jac:ignore[E1001]
+        reports: Any = (data["data"] or {})["reports"] or []; # jac:ignore[E1001]
         if len(reports) > 0 { # jac:ignore[E1053]
             graphState = reports[0]; # jac:ignore[E1001]
         }
@@ -81,7 +79,7 @@ def:pub AppShell(mode: str) -> JsxElement {
             }
         );
         data: Any = await res.json(); # jac:ignore[E1032]
-        reports: Any = data["reports"] or []; # jac:ignore[E1001]
+        reports: Any = (data["data"] or {})["reports"] or []; # jac:ignore[E1001]
 
         if len(reports) > 0 { # jac:ignore[E1053]
             result: Any = reports[0]; # jac:ignore[E1001]
@@ -171,24 +169,12 @@ def:pub AppShell(mode: str) -> JsxElement {
         activeSection = label;
     }
 
-    def linkRepository() -> None {
-        if repoInput.strip() == "" {
-            return;
-        }
-        repoDisplay = parse_repo_slug(repoInput);
-        repoLinked = True;
-    }
+    panelTitle = repoDisplay;
+    topDescription = "";
+    searchPlaceholder = "";
+    analysisButtonLabel = "Run Analysis";
 
-    panelTitle = "Connect a GitHub repository";
-    topDescription = (
-        "Paste a repository URL to scope this workspace. Overview and every tab stay limited to that project."
-    );
-    searchPlaceholder = "Available after you connect a repo";
-    analysisButtonLabel = "Connect";
-
-    if repoLinked {
-        analysisButtonLabel = "Run Analysis";
-        if isContributor {
+    if isContributor {
             if activeSection == "Overview" {
                 panelTitle = "Overview · " + repoDisplay;
                 topDescription = (
@@ -285,7 +271,6 @@ def:pub AppShell(mode: str) -> JsxElement {
                 }
             }
         }
-    }
 
     graphKicker = "Placeholder";
     graphTitle = "Graph Canvas Reserved";
@@ -377,41 +362,9 @@ def:pub AppShell(mode: str) -> JsxElement {
                         </div>
                     </aside>
                     <div
-                        className={
-                            "gw-workspace"
-                                + (" gw-workspace--connect" if not repoLinked else "")
-                        }
+                        className="gw-workspace"
                     >
-                        {not repoLinked and
-                            <div className="gw-repo-connect gw-glass-panel gw-fade-up gw-stagger-2">
-                                <h2 className="gw-repo-connect-title">
-                                    Link your repository
-                                </h2>
-                                <p className="gw-repo-connect-lede">
-                                    Enter a GitHub URL (for example
-                                    <code className="gw-repo-connect-code">
-                                        {" "}https://github.com/org/project
-                                    </code>
-                                    ). The overview and every tab below stay scoped to that repository.
-                                </p>
-                                <div className="gw-repo-connect-row">
-                                    <input
-                                        className="gw-repo-connect-input"
-                                        type="url"
-                                        placeholder="https://github.com/owner/repo"
-                                        value={repoInput}
-                                        onChange={lambda e: ChangeEvent { repoInput = e.target.value; }}
-                                    />
-                                    <button
-                                        type="button"
-                                        className="gw-glass-button gw-button-primary"
-                                        onClick={lambda -> None { linkRepository(); }}
-                                    >
-                                        Continue
-                                    </button>
-                                </div>
-                            </div>}
-                        {repoLinked and
+                        {
                             <header
                                 className="gw-topbar gw-glass-panel gw-fade-up gw-stagger-2"
                             >
@@ -518,7 +471,7 @@ def:pub AppShell(mode: str) -> JsxElement {
                                     </button>
                                 </div>
                             </header>}
-                        {isContributor and repoLinked and activeSection == "Suggestions" and
+                        {isContributor and activeSection == "Suggestions" and
                             <div className="gw-main-grid gw-main-grid--single gw-fade-up gw-stagger-3">
                                 <main className="gw-main-column">
                                     <section className="gw-table-panel gw-glass-panel">
@@ -601,7 +554,7 @@ def:pub AppShell(mode: str) -> JsxElement {
                                     </section>
                                 </main>
                             </div>}
-                        {isContributor and repoLinked and activeSection == "Docs & tests" and
+                        {isContributor and activeSection == "Docs & tests" and
                             <div className="gw-main-grid gw-main-grid--single gw-fade-up gw-stagger-3">
                                 <main className="gw-main-column">
                                     <section className="gw-table-panel gw-glass-panel">
@@ -678,7 +631,7 @@ def:pub AppShell(mode: str) -> JsxElement {
                                     </section>
                                 </main>
                             </div>}
-                        {isContributor and repoLinked and activeSection == "Activity" and
+                        {isContributor and activeSection == "Activity" and
                             <div className="gw-main-grid gw-main-grid--single gw-fade-up gw-stagger-3">
                                 <main className="gw-main-column">
                                     <section className="gw-table-panel gw-glass-panel">
@@ -713,7 +666,7 @@ def:pub AppShell(mode: str) -> JsxElement {
                                     </section>
                                 </main>
                             </div>}
-                        {isContributor and repoLinked and activeSection == "Settings" and
+                        {isContributor and activeSection == "Settings" and
                             <div className="gw-main-grid gw-main-grid--single gw-fade-up gw-stagger-3">
                                 <main className="gw-main-column gw-settings-column">
                                     <section className="gw-settings-block gw-glass-panel">
@@ -829,7 +782,7 @@ def:pub AppShell(mode: str) -> JsxElement {
                                     </section>
                                 </main>
                             </div>}
-                        {(not isContributor) and repoLinked and activeSection == "PR Review" and
+                        {(not isContributor) and activeSection == "PR Review" and
                             <div className="gw-main-grid gw-main-grid--single gw-fade-up gw-stagger-3">
                                 <main className="gw-main-column">
                                     <section className="gw-table-panel gw-glass-panel">
@@ -882,7 +835,7 @@ def:pub AppShell(mode: str) -> JsxElement {
                                     </section>
                                 </main>
                             </div>}
-                        {(not isContributor) and repoLinked and activeSection == "Dependency Alerts" and
+                        {(not isContributor) and activeSection == "Dependency Alerts" and
                             <div className="gw-main-grid gw-main-grid--single gw-fade-up gw-stagger-3">
                                 <main className="gw-main-column">
                                     <section className="gw-table-panel gw-glass-panel">
@@ -929,7 +882,7 @@ def:pub AppShell(mode: str) -> JsxElement {
                                     </section>
                                 </main>
                             </div>}
-                        {(not isContributor) and repoLinked and activeSection == "Incidents" and
+                        {(not isContributor) and activeSection == "Incidents" and
                             <div className="gw-main-grid gw-main-grid--single gw-fade-up gw-stagger-3">
                                 <main className="gw-main-column">
                                     <section className="gw-table-panel gw-glass-panel">
@@ -982,7 +935,7 @@ def:pub AppShell(mode: str) -> JsxElement {
                                     </section>
                                 </main>
                             </div>}
-                        {(not isContributor) and repoLinked and activeSection == "Settings" and
+                        {(not isContributor) and activeSection == "Settings" and
                             <div className="gw-main-grid gw-main-grid--single gw-fade-up gw-stagger-3">
                                 <main className="gw-main-column gw-settings-column">
                                     <section className="gw-settings-block gw-glass-panel">
@@ -1104,7 +1057,7 @@ def:pub AppShell(mode: str) -> JsxElement {
                                     </section>
                                 </main>
                             </div>}
-                        {isContributor and repoLinked and activeSection == "Overview" and
+                        {isContributor and activeSection == "Overview" and
                             <div className="gw-main-grid gw-fade-up gw-stagger-3">
                                 <main className="gw-main-column">
                                     <section className="gw-summary-grid">
@@ -1166,7 +1119,7 @@ def:pub AppShell(mode: str) -> JsxElement {
                                     </section>
                                 </aside>
                             </div>}
-                        {(not isContributor) and repoLinked and activeSection == "Overview" and
+                        {(not isContributor) and activeSection == "Overview" and
                             <div className="gw-main-grid gw-fade-up gw-stagger-3">
                                 <main className="gw-main-column">
                                     <section className="gw-summary-grid">
@@ -1226,6 +1179,7 @@ def:pub AppShell(mode: str) -> JsxElement {
                                                 edges_data={graphState["edges"]}
                                                 animatingPath={animatingPath}
                                                 analysisLoading={analysisLoading}
+                                                scanResult={analysisResult is not None and not analysisLoading}
                                             />}
                                         {(not graphState or len(graphState["nodes"]) == 0) and
                                             <div>

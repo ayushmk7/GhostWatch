@@ -10,6 +10,7 @@ walker BlastRadiusMapperWalker {
     has risk_score: int = 0;
     has traversal_path: list[str] = [];
 
+    can start_from_root with Root entry;
     can map_blast with FileNode entry;
 
     def _score_node(node_path: str, node_language: str, hop_distance: int) -> int by llm;
