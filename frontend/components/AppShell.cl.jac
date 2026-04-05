@@ -66,12 +66,21 @@ def path_key(raw: str) -> str {
     return name;
 }
 
+def contains_text(haystack: str, needle: str) -> bool {
+    h = str(haystack or "");
+    n = str(needle or "");
+    if not n {
+        return False;
+    }
+    return h.find(n) >= 0;
+}
+
 def looks_like_doc(raw: str) -> bool {
     t = str(raw or "").strip().lower();
     if not t {
         return False;
     }
-    return t.endswith(".md") or ("/docs/" in t) or t.startswith("docs/");
+    return t.endswith(".md") or contains_text(t, "/docs/") or t.startswith("docs/");
 }
 
 def str_or(val: Any, fallback: str) -> str {
@@ -103,6 +112,11 @@ def:pub AppShell(mode: str) -> JsxElement {
                 "/walker/GraphStateProxy",
                 {"method": "POST", "headers": {"Content-Type": "application/json"}, "body": "{}"}
             );
+            if not res.ok { # jac:ignore[E1032]
+                graphState = None; # jac:ignore[E1001]
+                graphFetchError = "graph proxy returned " + str(res.status); # jac:ignore[E1001,E1032]
+                return;
+            }
             data: Any = await res.json(); # jac:ignore[E1032]
             reports: Any = (data["data"] or {})["reports"] or []; # jac:ignore[E1001]
             if len(reports) > 0 { # jac:ignore[E1053]
@@ -112,39 +126,52 @@ def:pub AppShell(mode: str) -> JsxElement {
                 }
                 graphFetchError = ""; # jac:ignore[E1001]
             } else {
+                graphState = None; # jac:ignore[E1001]
                 graphFetchError = "proxy returned 0 reports"; # jac:ignore[E1001]
             }
         } except Exception as e { # jac:ignore[W2052]
+            graphState = None; # jac:ignore[E1001]
             graphFetchError = str(e); # jac:ignore[E1001]
         }
     }
 
     async def runAnalysis() -> None {
-        analysisLoading = True;
-        analysisResult = None;
-        animatingPath = [];
+        analysisLoading = True; # jac:ignore[E1001]
+        analysisResult = None; # jac:ignore[E1001]
+        animatingPath = []; # jac:ignore[E1001]
 
-        body_str: Any = JSON.stringify({"pr_url": DEMO_PR_URL}); # jac:ignore[E1032]
-        res: Any = await doFetch(
-            "/walker/OrchestratorProxy",
-            {
-                "method": "POST",
-                "headers": {"Content-Type": "application/json"},
-                "body": body_str
+        try {
+            body_str: Any = JSON.stringify({"pr_url": DEMO_PR_URL}); # jac:ignore[E1032]
+            res: Any = await doFetch(
+                "/walker/OrchestratorProxy",
+                {
+                    "method": "POST",
+                    "headers": {"Content-Type": "application/json"},
+                    "body": body_str
+                }
+            );
+            if not res.ok { # jac:ignore[E1032]
+                graphFetchError = "analysis proxy returned " + str(res.status); # jac:ignore[E1001,E1032]
+                return;
             }
-        );
-        data: Any = await res.json(); # jac:ignore[E1032]
-        reports: Any = (data["data"] or {})["reports"] or []; # jac:ignore[E1001]
+            data: Any = await res.json(); # jac:ignore[E1032]
+            reports: Any = (data["data"] or {})["reports"] or []; # jac:ignore[E1001]
 
-        if len(reports) > 0 { # jac:ignore[E1053]
-            result: Any = reports[0]; # jac:ignore[E1001]
-            analysisResult = result; # jac:ignore[E1001]
-            paths: Any = result["traversal_paths"] or {}; # jac:ignore[E1001]
-            blast_path: Any = paths["blast_radius"] or []; # jac:ignore[E1001]
-            animatingPath = blast_path; # jac:ignore[E1001]
+            if len(reports) > 0 { # jac:ignore[E1053]
+                result: Any = reports[0]; # jac:ignore[E1001]
+                analysisResult = result; # jac:ignore[E1001]
+                paths: Any = result["traversal_paths"] or {}; # jac:ignore[E1001]
+                blast_path: Any = paths["blast_radius"] or []; # jac:ignore[E1001]
+                animatingPath = blast_path; # jac:ignore[E1001]
+                graphFetchError = ""; # jac:ignore[E1001]
+            } else {
+                graphFetchError = "analysis proxy returned 0 reports"; # jac:ignore[E1001]
+            }
+        } except Exception as e { # jac:ignore[W2052]
+            graphFetchError = str(e); # jac:ignore[E1001]
+        } finally {
+            analysisLoading = False; # jac:ignore[E1001]
         }
-
-        analysisLoading = False;
         await fetchGraphState();
     }
 
@@ -179,7 +206,7 @@ def:pub AppShell(mode: str) -> JsxElement {
         key = path_key(path);
         has_doc_match = False;
         for drow in doc_files_live {
-            if key and (key in str_or(drow["path"], "").lower()) {
+            if key and contains_text(str_or(drow["path"], "").lower(), key) {
                 has_doc_match = True;
                 break;
             }
@@ -195,7 +222,7 @@ def:pub AppShell(mode: str) -> JsxElement {
         }
         has_test_match = False;
         for trow in test_files_live {
-            if key and (key in str_or(trow["path"], "").lower()) {
+            if key and contains_text(str_or(trow["path"], "").lower(), key) {
                 has_test_match = True;
                 break;
             }
