@@ -1,10 +1,16 @@
 def:pub AmbientBackground(screen: str) -> JsxElement {
+    isLanding = screen == "landing";
+    orbOne = (
+        <div className="gw-orb gw-orb-one"></div>
+            if not isLanding
+        else None
+    );
     return
         <div className={"gw-ambient gw-ambient-" + screen} aria-hidden="true">
             <div className="gw-light-pool gw-light-pool-one"></div>
             <div className="gw-light-pool gw-light-pool-two"></div>
             <div className="gw-light-pool gw-light-pool-three"></div>
-            <div className="gw-orb gw-orb-one"></div>
+            {orbOne}
             <div className="gw-orb gw-orb-two"></div>
             <svg
                 className="gw-ambient-lines"
