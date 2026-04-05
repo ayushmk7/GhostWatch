@@ -50,12 +50,95 @@ def:pub AppShell(mode: str) -> JsxElement {
     has activeSection: str = "Overview",
         repoInput: str = "",
         repoLinked: bool = False,
-        repoDisplay: str = "";
+        repoDisplay: str = "",
+        graphState: dict | None = None,
+        analysisLoading: bool = False,
+        analysisResult: dict | None = None,
+        animatingPath: list = [];
+
+    async def fetchGraphState() -> None {
+        res: Any = await doFetch(
+            "/walker/GraphStateProxy",
+            {"method": "POST", "headers": {"Content-Type": "application/json"}, "body": "{}"}
+        );
+        data: Any = await res.json();
+        reports: Any = data.get("reports", []);
+        if len(reports) > 0 {
+            graphState = reports[0];
+        }
+    }
+
+    async can with entry {
+        await fetchGraphState();
+    }
 
     sidebarItems = CONTRIBUTOR_SIDEBAR_ITEMS if isContributor else SIDEBAR_ITEMS;
-    summaryCards = CONTRIBUTOR_SUMMARY_CARDS if isContributor else SUMMARY_CARDS;
-    walkerItems = CONTRIBUTOR_WALKER_STATUS if isContributor else WALKER_STATUS;
-    attentionItems = CONTRIBUTOR_ATTENTION_ITEMS if isContributor else ATTENTION_ITEMS;
+
+    live_nodes: list = graphState["nodes"] if graphState else [];
+    high_risk_count: int = len([n for n in live_nodes if int(n.get("risk_score", 0)) >= 14]);
+    has_graph_live: bool = graphState["has_graph"] if graphState else False;
+    latest_pr_live: dict | None = graphState["latest_analysis"] if graphState else None;
+
+    live_summary_cards: list = [
+        {
+            "label": "Files scanned",
+            "value": str(len(live_nodes)) if graphState else "—",
+            "delta": "in graph",
+            "tone": "frost",
+            "spark": "6,30 42,18 80,20 122,10 160,16 198,8 236,14 274,9"
+        },
+        {
+            "label": "High-risk files",
+            "value": str(high_risk_count) if graphState else "—",
+            "delta": "above threshold",
+            "tone": "cyan",
+            "spark": "6,34 42,32 80,24 122,28 160,14 198,18 236,12 274,10"
+        },
+        {
+            "label": "Latest PR risk",
+            "value": (
+                latest_pr_live["verdict"].get("overall_risk", "?")
+                if latest_pr_live else "None yet"
+            ),
+            "delta": "analyzed",
+            "tone": "aqua",
+            "spark": "6,28 42,20 80,22 122,14 160,18 198,12 236,16 274,11"
+        },
+        {
+            "label": "Graph status",
+            "value": "Ready" if has_graph_live else "Building...",
+            "delta": "system 1",
+            "tone": "amber",
+            "spark": "6,36 42,26 80,24 122,20 160,18 198,15 236,11 274,10"
+        }
+    ];
+
+    summaryCards = CONTRIBUTOR_SUMMARY_CARDS if isContributor else live_summary_cards;
+
+    walker_state_str: str = "Running" if analysisLoading else ("Active" if has_graph_live else "Idle");
+    live_walker_status: list = [
+        {"name": "SecurityAuditorWalker", "state": walker_state_str},
+        {"name": "CompatibilityCheckerWalker", "state": walker_state_str},
+        {"name": "BlastRadiusMapperWalker", "state": walker_state_str}
+    ];
+    walkerItems = CONTRIBUTOR_WALKER_STATUS if isContributor else live_walker_status;
+
+    latest_incident_live: dict | None = graphState["latest_incident"] if graphState else None;
+    live_attention_items: list = [
+        {
+            "title": "Files in graph",
+            "value": f"{len(live_nodes)} nodes"
+        },
+        {
+            "title": "High-risk files",
+            "value": f"{high_risk_count} detected"
+        },
+        {
+            "title": "Latest incident",
+            "value": latest_incident_live["status"] if latest_incident_live else "None"
+        }
+    ];
+    attentionItems = CONTRIBUTOR_ATTENTION_ITEMS if isContributor else live_attention_items;
 
     def setSection(label: str) -> None {
         activeSection = label;
@@ -1064,22 +1147,31 @@ def:pub AppShell(mode: str) -> JsxElement {
                                     <section
                                         className="gw-graph-panel gw-glass-panel gw-fade-up gw-stagger-5"
                                     >
-                                        <div className="gw-graph-inner-frame"></div>
-                                        <GraphPlaceholderAccent/>
-                                        <div className="gw-graph-copy">
-                                            <span>
-                                                {graphKicker}
-                                            </span>
-                                            <h2>
-                                                {graphTitle}
-                                            </h2>
-                                            <p>
-                                                {graphBody}
-                                            </p>
-                                            <div className="gw-graph-foot">
-                                                {graphFoot}
-                                            </div>
-                                        </div>
+                                        {(graphState and len(graphState["nodes"]) > 0) and
+                                            <GraphView
+                                                nodes_data={graphState["nodes"]}
+                                                edges_data={graphState["edges"]}
+                                                animatingPath={animatingPath}
+                                                analysisLoading={analysisLoading}
+                                            />}
+                                        {(not graphState or len(graphState["nodes"]) == 0) and
+                                            <div>
+                                                <GraphPlaceholderAccent/>
+                                                <div className="gw-graph-copy">
+                                                    <span>
+                                                        {graphKicker}
+                                                    </span>
+                                                    <h2>
+                                                        {graphTitle}
+                                                    </h2>
+                                                    <p>
+                                                        {graphBody}
+                                                    </p>
+                                                    <div className="gw-graph-foot">
+                                                        {graphFoot}
+                                                    </div>
+                                                </div>
+                                            </div>}
                                     </section>
                                 </main>
                                 <aside className="gw-right-rail">
