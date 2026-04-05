@@ -28,7 +28,7 @@ walker:pub GitHubWebhookWalker {
 
         if self.event_type == "pull_request" {
             action = self.payload.get("action", "");
-            if action in ["opened", "synchronize", "reopened"] {
+            if action in ["opened", "synchronize", "reopened", "edited"] {
                 pr = self.payload.get("pull_request", {});
                 pr_url: str = str(pr.get("html_url", ""));
                 if pr_url {
