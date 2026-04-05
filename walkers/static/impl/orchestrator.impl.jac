@@ -6,6 +6,7 @@ import from walkers.static.compatibility { CompatibilityCheckerWalker }
 import from walkers.static.blast_radius { BlastRadiusMapperWalker }
 import from integrations.github { fetch_pr_diff }
 import from integrations.discord { notify_discord }
+import from lib.audit_export { export_audit_log }
 import from typing { Any }
 
 impl OrchestratorWalker.orchestrate with Root entry {
@@ -78,6 +79,8 @@ impl OrchestratorWalker.orchestrate with Root entry {
     pr_number = pr_parts[-1];
     report_link = f"http://localhost:3000/analysis/{jid(pr_node)}";
     notify_discord(pr_number, verdict.overall_risk, report_link);
+
+    export_audit_log(self.pr_url, dict(vars(verdict)), sec_result.get("findings", []));
 
     self.verdict = dict(vars(verdict));
     report self.verdict;
