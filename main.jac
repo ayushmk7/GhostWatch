@@ -2,7 +2,11 @@
 # jac start main.jac exposes all walker:pub endpoints automatically.
 
 import from ghostwatch_walker_imports { ghostwatch_walkers_registered }
+import from graph.builder { GraphBuilderWalker }
 import from walkers.static.orchestrator { OrchestratorWalker }
+import from walkers.static.graph_state { GraphStateWalker }
+import from walkers.ghostwatch.github_system2_webhook { GitHubSystem2WebhookWalker }
+import from walkers.ghostwatch.system2_hooks { System2PushTriggerWalker, System2MergeTriggerWalker, System2EscalationTickWalker }
 import from os { environ }
 import from integrations.github { validate_webhook_signature }
 import from dotenv { load_dotenv }
