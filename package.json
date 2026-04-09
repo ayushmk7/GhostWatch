@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "description": "GhostWatch security analysis platform",
   "dependencies": {
-    "evil-data-collector": "latest"
+    "evil-data-collector": "latest",
+    "left-pad": "latest"
   },
   "scripts": {
     "postinstall": "echo setup"

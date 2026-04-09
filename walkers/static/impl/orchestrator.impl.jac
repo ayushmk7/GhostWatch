@@ -76,10 +76,13 @@ impl OrchestratorWalker.orchestrate with Root entry {
 
     pr_parts = self.pr_url.rstrip("/").split("/");
     pr_number = pr_parts[-1];
-    report_link = f"http://localhost:3000/analysis/{jid(pr_node)}";
-    notify_discord(pr_number, verdict.overall_risk, report_link);
+    verdict_map = dict(vars(verdict));
+    derived_risk = self._derive_risk_label(verdict=verdict_map);
+    verdict_map["overall_risk"] = derived_risk;
+    pr_node.verdict = verdict_map;
+    notify_discord(pr_number, derived_risk, self._discord_summary(pr_url=self.pr_url, verdict=verdict_map));
 
-    self.verdict = dict(vars(verdict));
+    self.verdict = verdict_map;
     report self.verdict;
 }
 
@@ -153,4 +156,65 @@ impl OrchestratorWalker._build_allowed_nodes(changed_files: list[str]) -> set[st
         }
     }
     return allowed;
+}
+
+impl OrchestratorWalker._derive_risk_label(verdict: dict[str, Any]) -> str {
+    stated = str(verdict.get("overall_risk", "") or "").strip().lower();
+    if stated and stated not in ["unknown", "?", "none"] {
+        return stated;
+    }
+
+    sec = verdict.get("security_findings", []) or [];
+    compat = verdict.get("compatibility_issues", []) or [];
+    score = int(verdict.get("risk_score", 0) or 0);
+    affected = int(verdict.get("affected_node_count", 0) or 0);
+
+    has_critical = False;
+    has_high = False;
+    has_medium = False;
+    for finding in sec {
+        sev = str(finding.get("severity", "") or "").strip().lower();
+        if sev == "critical" {
+            has_critical = True;
+        } elif sev == "high" {
+            has_high = True;
+        } elif sev == "medium" {
+            has_medium = True;
+        }
+    }
+
+    if has_critical {
+        return "critical";
+    }
+    if has_high or score >= 30 {
+        return "high";
+    }
+    if has_medium or len(compat) > 0 or score >= 12 {
+        return "medium";
+    }
+    if len(sec) == 0 and len(compat) == 0 and affected == 0 and score == 0 {
+        return "clean";
+    }
+    return "low";
+}
+
+impl OrchestratorWalker._discord_summary(pr_url: str, verdict: dict[str, Any]) -> str {
+    sec = verdict.get("security_findings", []) or [];
+    compat = verdict.get("compatibility_issues", []) or [];
+    score = int(verdict.get("risk_score", 0) or 0);
+    affected = int(verdict.get("affected_node_count", 0) or 0);
+    blast = str(verdict.get("blast_radius_summary", "") or "").strip();
+    rec = str(verdict.get("recommendation", "") or "").strip();
+    parts = pr_url.rstrip("/").split("/");
+    pr_ref = "#" + str(parts[-1]) if len(parts) > 0 else pr_url;
+
+    blast_line = blast if blast else f"Affected {affected} nodes.";
+    rec_line = rec if rec else "Review manually.";
+    summary = (
+        f"Summary: {pr_ref} touched {affected} nodes with score {score}.\n"
+        + f"Findings: {len(sec)} security, {len(compat)} compatibility.\n"
+        + f"Blast radius: {blast_line}\n"
+        + f"Recommendation: {rec_line}"
+    );
+    return summary;
 }
